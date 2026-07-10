@@ -1,6 +1,7 @@
 -- Statline schema for Supabase.
--- Run this once in your project's SQL Editor (Supabase dashboard ->
--- SQL Editor -> New query -> paste -> Run).
+-- Safe to run multiple times (idempotent) -- re-running it after a partial
+-- or full previous run will not error. Run in your project's SQL Editor
+-- (Supabase dashboard -> SQL Editor -> New query -> paste -> Run).
 --
 -- No Supabase Auth is used in this app. NextAuth (admin login only) stays
 -- entirely on the app's local JSON storage -- admin credentials never enter
@@ -13,7 +14,7 @@
 -- ---------------------------------------------------------------------------
 -- athletes  (this is the table profile-builder submissions write to)
 -- ---------------------------------------------------------------------------
-create table public.athletes (
+create table if not exists public.athletes (
   id uuid primary key default gen_random_uuid(),
   owner_token text,
   level text not null check (level in ('high-school', 'college', 'pro')),
@@ -48,14 +49,14 @@ create table public.athletes (
   updated_at timestamptz not null default now()
 );
 
-create index athletes_owner_token_idx on public.athletes (owner_token);
-create index athletes_published_idx on public.athletes (published, is_international);
-create index athletes_sport_idx on public.athletes (sport);
+create index if not exists athletes_owner_token_idx on public.athletes (owner_token);
+create index if not exists athletes_published_idx on public.athletes (published, is_international);
+create index if not exists athletes_sport_idx on public.athletes (sport);
 
 -- ---------------------------------------------------------------------------
 -- scouting_boards + board_cards (coach kanban boards)
 -- ---------------------------------------------------------------------------
-create table public.scouting_boards (
+create table if not exists public.scouting_boards (
   id uuid primary key default gen_random_uuid(),
   owner_token text not null,
   name text not null,
@@ -65,9 +66,9 @@ create table public.scouting_boards (
   updated_at timestamptz not null default now()
 );
 
-create index scouting_boards_owner_token_idx on public.scouting_boards (owner_token);
+create index if not exists scouting_boards_owner_token_idx on public.scouting_boards (owner_token);
 
-create table public.board_cards (
+create table if not exists public.board_cards (
   id uuid primary key default gen_random_uuid(),
   board_id uuid not null references public.scouting_boards (id) on delete cascade,
   athlete_id uuid not null references public.athletes (id) on delete cascade,
@@ -77,13 +78,13 @@ create table public.board_cards (
   unique (board_id, athlete_id)
 );
 
-create index board_cards_board_id_idx on public.board_cards (board_id);
-create index board_cards_athlete_id_idx on public.board_cards (athlete_id);
+create index if not exists board_cards_board_id_idx on public.board_cards (board_id);
+create index if not exists board_cards_athlete_id_idx on public.board_cards (athlete_id);
 
 -- ---------------------------------------------------------------------------
 -- recruiting_programs (international "My Recruiting Board" CRM)
 -- ---------------------------------------------------------------------------
-create table public.recruiting_programs (
+create table if not exists public.recruiting_programs (
   id uuid primary key default gen_random_uuid(),
   owner_token text not null,
   school_name text not null,
@@ -96,12 +97,12 @@ create table public.recruiting_programs (
   updated_at timestamptz not null default now()
 );
 
-create index recruiting_programs_owner_token_idx on public.recruiting_programs (owner_token);
+create index if not exists recruiting_programs_owner_token_idx on public.recruiting_programs (owner_token);
 
 -- ---------------------------------------------------------------------------
 -- saved_searches, stars, follows: anonymous per-visitor state
 -- ---------------------------------------------------------------------------
-create table public.saved_searches (
+create table if not exists public.saved_searches (
   id uuid primary key default gen_random_uuid(),
   owner_token text not null,
   name text not null,
@@ -109,44 +110,45 @@ create table public.saved_searches (
   created_at timestamptz not null default now()
 );
 
-create index saved_searches_owner_token_idx on public.saved_searches (owner_token);
+create index if not exists saved_searches_owner_token_idx on public.saved_searches (owner_token);
 
-create table public.stars (
+create table if not exists public.stars (
   owner_token text not null,
   athlete_id uuid not null references public.athletes (id) on delete cascade,
   created_at timestamptz not null default now(),
   primary key (owner_token, athlete_id)
 );
 
-create index stars_athlete_id_idx on public.stars (athlete_id);
+create index if not exists stars_athlete_id_idx on public.stars (athlete_id);
 
-create table public.follows (
+create table if not exists public.follows (
   owner_token text not null,
   athlete_id uuid not null references public.athletes (id) on delete cascade,
   created_at timestamptz not null default now(),
   primary key (owner_token, athlete_id)
 );
 
-create index follows_athlete_id_idx on public.follows (athlete_id);
+create index if not exists follows_athlete_id_idx on public.follows (athlete_id);
 
 -- ---------------------------------------------------------------------------
 -- analytics_events
 -- ---------------------------------------------------------------------------
-create table public.analytics_events (
+create table if not exists public.analytics_events (
   id bigint generated always as identity primary key,
   type text not null,
   meta jsonb,
   ts timestamptz not null default now()
 );
 
-create index analytics_events_type_idx on public.analytics_events (type);
-create index analytics_events_ts_idx on public.analytics_events (ts desc);
+create index if not exists analytics_events_type_idx on public.analytics_events (type);
+create index if not exists analytics_events_ts_idx on public.analytics_events (ts desc);
 
 -- ---------------------------------------------------------------------------
 -- RLS: enabled everywhere. No Supabase Auth session ever exists in this app,
 -- so ownership (owner_token match) is enforced in the Next.js API routes,
 -- not in these policies -- policies are permissive for the anon role, which
--- is the only Postgres role every request uses.
+-- is the only Postgres role every request uses. Policies are dropped and
+-- recreated each run since Postgres has no "create policy if not exists".
 -- ---------------------------------------------------------------------------
 alter table public.athletes enable row level security;
 alter table public.scouting_boards enable row level security;
@@ -157,11 +159,26 @@ alter table public.stars enable row level security;
 alter table public.follows enable row level security;
 alter table public.analytics_events enable row level security;
 
+drop policy if exists "athletes_all" on public.athletes;
 create policy "athletes_all" on public.athletes for all to anon using (true) with check (true);
+
+drop policy if exists "scouting_boards_all" on public.scouting_boards;
 create policy "scouting_boards_all" on public.scouting_boards for all to anon using (true) with check (true);
+
+drop policy if exists "board_cards_all" on public.board_cards;
 create policy "board_cards_all" on public.board_cards for all to anon using (true) with check (true);
+
+drop policy if exists "recruiting_programs_all" on public.recruiting_programs;
 create policy "recruiting_programs_all" on public.recruiting_programs for all to anon using (true) with check (true);
+
+drop policy if exists "saved_searches_all" on public.saved_searches;
 create policy "saved_searches_all" on public.saved_searches for all to anon using (true) with check (true);
+
+drop policy if exists "stars_all" on public.stars;
 create policy "stars_all" on public.stars for all to anon using (true) with check (true);
+
+drop policy if exists "follows_all" on public.follows;
 create policy "follows_all" on public.follows for all to anon using (true) with check (true);
+
+drop policy if exists "analytics_events_all" on public.analytics_events;
 create policy "analytics_events_all" on public.analytics_events for all to anon using (true) with check (true);
