@@ -4,7 +4,7 @@ import { HeroCTAs } from "@/components/home/HeroCTAs";
 
 export function Hero() {
   return (
-    <section className="angular-bg relative overflow-hidden border-b border-white/10 px-4 py-24 sm:py-32">
+    <section className="hero-photo-bg angular-bg relative overflow-hidden border-b border-white/10 px-4 py-24 sm:py-32">
       <svg
         className="pointer-events-none absolute -right-24 -top-24 h-[420px] w-[420px] opacity-30 sm:h-[560px] sm:w-[560px]"
         viewBox="0 0 400 400"
