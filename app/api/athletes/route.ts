@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { store } from "@/lib/storage";
+import { getDeviceToken } from "@/lib/deviceToken";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -48,10 +47,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
-  }
+  const ownerToken = await getDeviceToken();
 
   const body = await req.json();
 
@@ -66,7 +62,7 @@ export async function POST(req: Request) {
   }
 
   const athlete = await store.createAthlete({
-    userId: session.user.id,
+    ownerToken,
     level: body.level,
     sport: body.sport,
     name: body.name,

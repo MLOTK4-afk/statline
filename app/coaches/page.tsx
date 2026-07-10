@@ -1,17 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
 import type { AthleteProfile, BoardColumnKey, ScoutingBoard } from "@/lib/types";
 import { KanbanBoard } from "@/components/coaches/KanbanBoard";
 import { AddAthleteSearch } from "@/components/coaches/AddAthleteSearch";
 import { BoardTabs } from "@/components/coaches/BoardTabs";
 import { ShareBoardButton } from "@/components/coaches/ShareBoardButton";
-import { LinkButton } from "@/components/ui/Button";
 import { useToast } from "@/lib/toast/ToastContext";
 
 export default function CoachesPage() {
-  const { status } = useSession();
   const { showToast } = useToast();
   const [boards, setBoards] = useState<ScoutingBoard[]>([]);
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
@@ -30,13 +27,12 @@ export default function CoachesPage() {
   }, []);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
     loadBoards();
     fetch("/api/athletes")
       .then((res) => res.json())
       .then(setAthletes)
       .catch(() => {});
-  }, [status, loadBoards]);
+  }, [loadBoards]);
 
   const athleteMap = useMemo(
     () => new Map(athletes.map((a) => [a.id, a])),
@@ -151,28 +147,6 @@ export default function CoachesPage() {
     const updated = await res.json();
     setBoards((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
     return updated;
-  }
-
-  if (status === "loading") {
-    return <div className="px-4 py-24 text-center text-slate-500">Loading...</div>;
-  }
-
-  if (status !== "authenticated") {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-24 text-center">
-        <h1 className="text-3xl text-white">Sign in to scout</h1>
-        <p className="mt-2 text-slate-400">
-          Coaches need an account to build a scouting board and track
-          athletes through the recruiting pipeline.
-        </p>
-        <div className="mt-6 flex justify-center gap-3">
-          <LinkButton href="/login">Sign In</LinkButton>
-          <LinkButton href="/register" variant="outline">
-            Create Account
-          </LinkButton>
-        </div>
-      </div>
-    );
   }
 
   return (

@@ -11,7 +11,7 @@ import type { AthleteProfile } from "@/lib/types";
  */
 export const EXAMPLE_PROFILE: AthleteProfile = {
   id: "example",
-  userId: "example",
+  ownerToken: null,
   level: "high-school",
   sport: "Football",
   name: "Jordan Rivera",

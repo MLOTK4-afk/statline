@@ -41,10 +41,6 @@ export async function POST(req: Request) {
     email,
     passwordHash,
     role: safeRole,
-    starredAthletes: [],
-    following: [],
-    savedSearches: [],
-    preferences: { language: "en" },
   });
 
   return NextResponse.json({

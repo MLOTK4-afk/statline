@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import type { SavedSearch } from "@/lib/types";
 import type { Filters } from "@/components/browse/FilterBar";
 import { Button } from "@/components/ui/Button";
@@ -14,20 +13,16 @@ export function SavedSearches({
   filters: Filters;
   onApply: (filters: Filters) => void;
 }) {
-  const { status } = useSession();
   const [saved, setSaved] = useState<SavedSearch[]>([]);
 
   const { showToast } = useToast();
 
   useEffect(() => {
-    if (status !== "authenticated") return;
     fetch("/api/users/me")
       .then((res) => (res.ok ? res.json() : null))
       .then((user) => setSaved(user?.savedSearches ?? []))
       .catch(() => {});
-  }, [status]);
-
-  if (status !== "authenticated") return null;
+  }, []);
 
   const hasActiveFilters = Object.values(filters).some((v) => v);
 
@@ -40,8 +35,8 @@ export function SavedSearches({
       body: JSON.stringify({ name, filters }),
     });
     if (res.ok) {
-      const user = await res.json();
-      setSaved(user.savedSearches);
+      const data = await res.json();
+      setSaved(data.savedSearches);
       showToast("Search saved");
     }
   }
@@ -51,8 +46,8 @@ export function SavedSearches({
       method: "DELETE",
     });
     if (res.ok) {
-      const user = await res.json();
-      setSaved(user.savedSearches);
+      const data = await res.json();
+      setSaved(data.savedSearches);
     }
   }
 

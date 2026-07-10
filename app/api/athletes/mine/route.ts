@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { store } from "@/lib/storage";
+import { getDeviceToken } from "@/lib/deviceToken";
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
-  }
+  const ownerToken = await getDeviceToken();
+  if (!ownerToken) return NextResponse.json(null);
+
   const athletes = await store.listAthletes();
-  const mine = athletes.find((a) => a.userId === session.user.id) ?? null;
+  const mine = athletes.find((a) => a.ownerToken === ownerToken) ?? null;
   return NextResponse.json(mine);
 }

@@ -32,7 +32,11 @@ export interface DivisionMatch {
 
 export interface AthleteProfile {
   id: string;
-  userId: string;
+  /**
+   * Anonymous device-token identity of whoever created this profile — the
+   * app allows anonymous form submission, so this is not a real user id.
+   */
+  ownerToken: string | null;
   level: Level;
   sport: string;
   name: string;
@@ -100,18 +104,18 @@ export interface SavedSearch {
   createdAt: string;
 }
 
+/**
+ * Backs NextAuth admin login only (kept on local JSON storage, never
+ * migrated to Postgres — see lib/storage/index.ts). Regular visitors never
+ * have one of these; their starred/followed athletes, boards, and saved
+ * searches are all keyed by an anonymous device token instead.
+ */
 export interface UserRecord {
   id: string;
   name: string;
   email: string;
   passwordHash: string;
   role: Role;
-  starredAthletes: string[];
-  following: string[];
-  savedSearches: SavedSearch[];
-  preferences: {
-    language: Language;
-  };
   createdAt: string;
   updatedAt: string;
 }
@@ -130,7 +134,7 @@ export interface BoardCard {
 
 export interface ScoutingBoard {
   id: string;
-  userId: string;
+  ownerToken: string;
   name: string;
   isDefault?: boolean;
   /** Present once a coach generates a read-only share link for this board. */
@@ -159,7 +163,7 @@ export interface RecruitingProgram {
 }
 
 export interface RecruitingBoard {
-  userId: string;
+  ownerToken: string;
   programs: RecruitingProgram[];
   updatedAt: string;
 }

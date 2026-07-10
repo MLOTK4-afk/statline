@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { store } from "@/lib/storage";
+import { getDeviceToken } from "@/lib/deviceToken";
 import { ProfileFull } from "@/components/profile/ProfileFull";
 import { StarButton } from "@/components/profile/StarButton";
 import { FollowButton } from "@/components/profile/FollowButton";
@@ -35,17 +34,17 @@ export default async function AthletePage({
   });
   const finalAthlete = updated ?? athlete;
 
-  const [session, followerCount] = await Promise.all([
-    getServerSession(authOptions),
+  const [ownerToken, followerCount] = await Promise.all([
+    getDeviceToken(),
     store.getFollowerCount(athlete.id),
   ]);
-  const isOwner = session?.user?.id === athlete.userId;
+  const isOwner = !!ownerToken && ownerToken === athlete.ownerToken;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="mb-4 flex justify-end gap-2">
         <ShareLinkButton athleteId={athlete.id} />
-        <FollowButton athleteId={athlete.id} ownerUserId={athlete.userId} />
+        <FollowButton athleteId={athlete.id} isOwner={isOwner} />
         <StarButton athleteId={athlete.id} />
       </div>
 

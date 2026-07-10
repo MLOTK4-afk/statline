@@ -1,34 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/lib/toast/ToastContext";
 
 export function FollowButton({
   athleteId,
-  ownerUserId,
+  isOwner,
 }: {
   athleteId: string;
-  ownerUserId: string;
+  isOwner: boolean;
 }) {
-  const { data: session, status } = useSession();
   const [following, setFollowing] = useState(false);
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (isOwner) return;
     fetch("/api/users/me")
       .then((res) => (res.ok ? res.json() : null))
       .then((user) => {
         if (user?.following?.includes(athleteId)) setFollowing(true);
       })
       .catch(() => {});
-  }, [status, athleteId]);
+  }, [isOwner, athleteId]);
 
-  if (status !== "authenticated") return null;
-  if (session?.user?.id === ownerUserId) return null;
+  if (isOwner) return null;
 
   async function toggle() {
     setLoading(true);

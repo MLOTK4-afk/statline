@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { cn } from "@/lib/cn";
 
 const TABS = [
@@ -66,19 +65,14 @@ const TABS = [
 
 export function MobileBottomNav() {
   const pathname = usePathname();
-  const { status } = useSession();
   const [starredCount, setStarredCount] = useState(0);
 
   useEffect(() => {
-    if (status !== "authenticated") {
-      setStarredCount(0);
-      return;
-    }
     fetch("/api/users/me")
       .then((res) => (res.ok ? res.json() : null))
       .then((user) => setStarredCount(user?.starredAthletes?.length ?? 0))
       .catch(() => {});
-  }, [status]);
+  }, []);
 
   return (
     <nav

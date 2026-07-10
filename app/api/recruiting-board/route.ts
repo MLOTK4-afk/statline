@@ -1,21 +1,20 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { store } from "@/lib/storage";
+import { getDeviceToken } from "@/lib/deviceToken";
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  const ownerToken = await getDeviceToken();
+  if (!ownerToken) {
+    return NextResponse.json({ ownerToken: null, programs: [], updatedAt: new Date().toISOString() });
   }
-  const board = await store.getRecruitingBoard(session.user.id);
+  const board = await store.getRecruitingBoard(ownerToken);
   return NextResponse.json(board);
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  const ownerToken = await getDeviceToken();
+  if (!ownerToken) {
+    return NextResponse.json({ error: "No device token." }, { status: 400 });
   }
   const body = await req.json();
   if (!body.schoolName || !body.division) {
@@ -24,7 +23,7 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
-  const board = await store.addRecruitingProgram(session.user.id, {
+  const board = await store.addRecruitingProgram(ownerToken, {
     schoolName: body.schoolName,
     division: body.division,
     coachName: body.coachName,

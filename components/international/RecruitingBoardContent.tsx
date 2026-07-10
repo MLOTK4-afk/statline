@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import type {
   ProgramDivision,
   ProgramStage,
@@ -12,7 +11,6 @@ import { BOARD_COLUMNS } from "@/lib/constants";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, Select, Textarea } from "@/components/ui/Field";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { LinkButton } from "@/components/ui/Button";
 import { useToast } from "@/lib/toast/ToastContext";
 
 const DIVISIONS: ProgramDivision[] = ["D1", "D2", "D3", "NAIA", "JUCO"];
@@ -26,33 +24,17 @@ const emptyForm = {
 };
 
 export function RecruitingBoardContent() {
-  const { status } = useSession();
   const [board, setBoard] = useState<RecruitingBoard | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
-    if (status !== "authenticated") return;
     fetch("/api/recruiting-board")
       .then((res) => (res.ok ? res.json() : null))
       .then(setBoard)
       .catch(() => setBoard(null));
-  }, [status]);
-
-  if (status === "loading") {
-    return <p className="text-slate-500">Loading...</p>;
-  }
-
-  if (status !== "authenticated") {
-    return (
-      <EmptyState
-        title="Sign in to track your recruiting outreach"
-        description="Create a free account to build a board of U.S. programs you're targeting."
-        action={<LinkButton href="/login">Sign In</LinkButton>}
-      />
-    );
-  }
+  }, []);
 
   if (!board) {
     return <p className="text-slate-500">Loading your recruiting board...</p>;

@@ -1,23 +1,16 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { store } from "@/lib/storage";
+import { getDeviceToken } from "@/lib/deviceToken";
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  const ownerToken = await getDeviceToken();
+  if (!ownerToken) {
+    return NextResponse.json({ error: "No device token." }, { status: 400 });
   }
   const { athleteId } = await req.json();
-  const user = await store.getUserById(session.user.id);
-  if (!user) return NextResponse.json({ error: "Not found." }, { status: 404 });
-
-  const following = new Set(user.following);
-  following.has(athleteId) ? following.delete(athleteId) : following.add(athleteId);
-
-  const updated = await store.updateUser(session.user.id, {
-    following: Array.from(following),
-  });
-  const { passwordHash: _passwordHash, ...safeUser } = updated!;
-  return NextResponse.json(safeUser);
+  if (!athleteId) {
+    return NextResponse.json({ error: "athleteId is required." }, { status: 400 });
+  }
+  const following = await store.toggleFollow(ownerToken, athleteId);
+  return NextResponse.json({ following });
 }

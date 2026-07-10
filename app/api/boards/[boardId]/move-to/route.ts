@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { store } from "@/lib/storage";
 import { getOwnedBoard } from "@/lib/boardAuth";
+import { getDeviceToken } from "@/lib/deviceToken";
 
 export async function POST(
   req: Request,
   { params }: { params: { boardId: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  const ownerToken = await getDeviceToken();
+  if (!ownerToken) {
+    return NextResponse.json({ error: "No device token." }, { status: 400 });
   }
-  const owned = await getOwnedBoard(session.user.id, params.boardId);
+  const owned = await getOwnedBoard(ownerToken, params.boardId);
   if (!owned) {
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   }
@@ -23,11 +22,11 @@ export async function POST(
       { status: 400 }
     );
   }
-  const targetOwned = await getOwnedBoard(session.user.id, toBoardId);
+  const targetOwned = await getOwnedBoard(ownerToken, toBoardId);
   if (!targetOwned) {
     return NextResponse.json({ error: "Target board not found." }, { status: 404 });
   }
   await store.moveCardToBoard(params.boardId, toBoardId, athleteId);
-  const boards = await store.listBoardsByUserId(session.user.id);
+  const boards = await store.listBoardsByOwnerToken(ownerToken);
   return NextResponse.json(boards);
 }

@@ -48,10 +48,6 @@ if (existingIdx !== -1) {
     email,
     passwordHash,
     role: "admin",
-    starredAthletes: [],
-    following: [],
-    savedSearches: [],
-    preferences: { language: "en" },
     createdAt: now,
     updatedAt: now,
   });
