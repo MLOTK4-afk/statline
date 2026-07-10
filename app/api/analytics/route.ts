@@ -3,6 +3,17 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { store } from "@/lib/storage";
 
+function toStringRecord(value: unknown): Record<string, string> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (!entries.every(([, v]) => typeof v === "string")) {
+    return undefined;
+  }
+  return value as Record<string, string>;
+}
+
 export async function POST(req: Request) {
   let body: { type?: unknown; meta?: unknown };
   try {
@@ -14,7 +25,7 @@ export async function POST(req: Request) {
   if (typeof type !== "string" || !type) {
     return NextResponse.json({ error: "type is required." }, { status: 400 });
   }
-  await store.recordEvent(type, meta);
+  await store.recordEvent(type, toStringRecord(meta));
   return NextResponse.json({ ok: true });
 }
 
