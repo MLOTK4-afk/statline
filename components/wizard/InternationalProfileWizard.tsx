@@ -142,8 +142,8 @@ export function InternationalProfileWizard() {
         {step === 1 && (
           <div>
             <h2 className="text-2xl text-white">Select your level</h2>
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              {LEVELS.filter((l) => l.value !== "pro").map((l) => (
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {LEVELS.map((l) => (
                 <button
                   key={l.value}
                   type="button"

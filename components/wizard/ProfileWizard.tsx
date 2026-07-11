@@ -242,7 +242,7 @@ export function ProfileWizard() {
               <p className="mt-1 text-sm text-slate-400">
                 This determines what coaches and scouts see first.
               </p>
-              <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {LEVELS.map((l) => (
                   <button
                     key={l.value}

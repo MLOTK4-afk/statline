@@ -17,7 +17,7 @@
 create table if not exists public.athletes (
   id uuid primary key default gen_random_uuid(),
   owner_token text,
-  level text not null check (level in ('high-school', 'college', 'pro')),
+  level text not null check (level in ('youth', 'high-school', 'college', 'independent')),
   sport text not null,
   name text not null,
   jersey_number text,

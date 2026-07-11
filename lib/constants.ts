@@ -2,6 +2,11 @@ import type { Level } from "@/lib/types";
 
 export const LEVELS: { value: Level; label: string; blurb: string }[] = [
   {
+    value: "youth",
+    label: "Youth",
+    blurb: "Not yet in high school? Start building your recruiting presence early.",
+  },
+  {
     value: "high-school",
     label: "High School",
     blurb: "Build your recruiting profile for college coaches",
@@ -9,12 +14,12 @@ export const LEVELS: { value: Level; label: string; blurb: string }[] = [
   {
     value: "college",
     label: "College",
-    blurb: "Get discovered for transfer portal or pro scouting",
+    blurb: "Get discovered for transfer portal opportunities",
   },
   {
-    value: "pro",
-    label: "Pro",
-    blurb: "Showcase your professional resume to front offices",
+    value: "independent",
+    label: "Independent",
+    blurb: "Training or competing outside a school or college team",
   },
 ];
 

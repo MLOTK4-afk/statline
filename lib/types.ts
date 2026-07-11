@@ -1,4 +1,4 @@
-export type Level = "high-school" | "college" | "pro";
+export type Level = "youth" | "high-school" | "college" | "independent";
 
 export type Division = "D1" | "D2" | "D3" | "NAIA";
 
