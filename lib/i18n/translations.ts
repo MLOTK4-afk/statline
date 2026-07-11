@@ -5,7 +5,7 @@ export const translations: Record<Language, Record<string, string>> = {
     tagline: "For international athletes targeting U.S. college programs",
     headline: "GO PRO ON THE GLOBAL STAGE",
     subhead:
-      "Statline International helps soccer, basketball, tennis, and track & field athletes outside the U.S. get discovered by college coaches.",
+      "Statline International helps soccer, basketball, tennis, track & field, and rugby athletes outside the U.S. get discovered by college coaches.",
     ctaBuildProfile: "Build International Profile",
     ctaBrowse: "Browse International Athletes",
     sportsTitle: "Choose your sport",
@@ -28,7 +28,7 @@ export const translations: Record<Language, Record<string, string>> = {
     tagline: "Para atletas internacionais que buscam programas universitários nos EUA",
     headline: "BRILHE NO CENÁRIO GLOBAL",
     subhead:
-      "O Statline International ajuda atletas de futebol, basquete, tênis e atletismo fora dos EUA a serem descobertos por técnicos universitários.",
+      "O Statline International ajuda atletas de futebol, basquete, tênis, atletismo e rugby fora dos EUA a serem descobertos por técnicos universitários.",
     ctaBuildProfile: "Criar Perfil Internacional",
     ctaBrowse: "Ver Atletas Internacionais",
     sportsTitle: "Escolha seu esporte",
@@ -51,7 +51,7 @@ export const translations: Record<Language, Record<string, string>> = {
     tagline: "Para atletas internacionales que buscan programas universitarios en EE. UU.",
     headline: "BRILLA EN EL ESCENARIO GLOBAL",
     subhead:
-      "Statline International ayuda a atletas de fútbol, baloncesto, tenis y atletismo fuera de EE. UU. a ser descubiertos por entrenadores universitarios.",
+      "Statline International ayuda a atletas de fútbol, baloncesto, tenis, atletismo y rugby fuera de EE. UU. a ser descubiertos por entrenadores universitarios.",
     ctaBuildProfile: "Crear Perfil Internacional",
     ctaBrowse: "Ver Atletas Internacionales",
     sportsTitle: "Elige tu deporte",
@@ -74,7 +74,7 @@ export const translations: Record<Language, Record<string, string>> = {
     tagline: "Pour les athlètes internationaux visant les programmes universitaires américains",
     headline: "BRILLEZ SUR LA SCÈNE MONDIALE",
     subhead:
-      "Statline International aide les athlètes de football, basketball, tennis et athlétisme hors des États-Unis à être repérés par des entraîneurs universitaires.",
+      "Statline International aide les athlètes de football, basketball, tennis, athlétisme et rugby hors des États-Unis à être repérés par des entraîneurs universitaires.",
     ctaBuildProfile: "Créer un Profil International",
     ctaBrowse: "Parcourir les Athlètes Internationaux",
     sportsTitle: "Choisissez votre sport",

@@ -44,4 +44,8 @@ export const INTERNATIONAL_SPORT_INFO: Record<
     blurb:
       "Track & field recruiting is stats-first — verified times, marks, and meet-level competition context (national vs. regional vs. club) carry the most weight.",
   },
+  Rugby: {
+    blurb:
+      "U.S. college rugby is still a growing sport, so coaches lean heavily on match footage and club/national-age-grade competition level to evaluate international prospects.",
+  },
 };

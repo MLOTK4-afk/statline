@@ -38,6 +38,7 @@ export const SPORTS = [
   "Swimming",
   "Hockey",
   "Cross Country",
+  "Rugby",
 ];
 
 export const INTERNATIONAL_SPORTS = [
@@ -45,6 +46,7 @@ export const INTERNATIONAL_SPORTS = [
   "Basketball",
   "Tennis",
   "Track & Field",
+  "Rugby",
 ];
 
 export const US_REGIONS = [
