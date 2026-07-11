@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import type { AthleteProfile } from "@/lib/types";
 import { INTERNATIONAL_SPORTS } from "@/lib/constants";
@@ -35,8 +35,20 @@ export default function InternationalPage() {
 
   return (
     <div>
-      <section className="angular-bg border-b border-white/10 px-4 py-20 sm:py-28">
-        <div className="mx-auto max-w-4xl text-center">
+      <section
+        style={
+          {
+            "--photo-url": "url(/images/international-relay.jpg)",
+            "--photo-position": "center 40%",
+            "--photo-tint-1":
+              "linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, transparent 45%)",
+            "--photo-tint-2":
+              "linear-gradient(-45deg, rgba(110, 231, 183, 0.08) 0%, transparent 40%)",
+          } as CSSProperties
+        }
+        className="photo-bg angular-bg relative overflow-hidden border-b border-white/10 px-4 py-20 sm:py-28"
+      >
+        <div className="relative mx-auto max-w-4xl text-center">
           <div className="flex justify-center">
             <Logo height={80} />
           </div>

@@ -5,6 +5,7 @@ import { TrendingStrip } from "@/components/home/TrendingStrip";
 import { ActivityFeed, type ActivityItem } from "@/components/home/ActivityFeed";
 import { Spotlight } from "@/components/home/Spotlight";
 import { CoachHomeRedirect } from "@/components/home/CoachHomeRedirect";
+import { Reveal } from "@/components/ui/Reveal";
 
 export const dynamic = "force-dynamic";
 
@@ -54,9 +55,15 @@ export default async function HomePage() {
         <CoachHomeRedirect />
       </Suspense>
       <Hero />
-      <TrendingStrip athletes={trending} />
-      <ActivityFeed items={activityItems} />
-      <Spotlight athletes={spotlight} />
+      <Reveal>
+        <TrendingStrip athletes={trending} />
+      </Reveal>
+      <Reveal>
+        <ActivityFeed items={activityItems} />
+      </Reveal>
+      <Reveal>
+        <Spotlight athletes={spotlight} />
+      </Reveal>
     </>
   );
 }

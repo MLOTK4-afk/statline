@@ -75,6 +75,35 @@
     background-repeat: no-repeat, no-repeat, no-repeat, repeat, no-repeat;
   }
 
+  /*
+   * Secondary-page photo banners (Browse, Coaches, Leaderboard, International,
+   * Build Profile). Same navy-scrim recipe as .hero-photo-bg, but driven by
+   * --photo-url/--photo-position/--photo-tint-1/--photo-tint-2 custom
+   * properties set inline per page, so one class covers all five instead of
+   * duplicating the gradient stack five times.
+   */
+  .photo-bg.angular-bg::before {
+    background-image: linear-gradient(
+        180deg,
+        rgba(15, 23, 42, 0.84) 0%,
+        rgba(15, 23, 42, 0.9) 55%,
+        rgba(15, 23, 42, 0.97) 100%
+      ),
+      var(--photo-tint-1, linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, transparent 45%)),
+      var(--photo-tint-2, linear-gradient(-45deg, rgba(147, 197, 253, 0.08) 0%, transparent 40%)),
+      repeating-linear-gradient(
+        115deg,
+        rgba(59, 130, 246, 0.04) 0px,
+        rgba(59, 130, 246, 0.04) 2px,
+        transparent 2px,
+        transparent 80px
+      ),
+      var(--photo-url);
+    background-size: auto, auto, auto, auto, cover;
+    background-position: center, center, center, center, var(--photo-position, center);
+    background-repeat: no-repeat, no-repeat, no-repeat, repeat, no-repeat;
+  }
+
   .card-gradient {
     background: linear-gradient(160deg, #141c33 0%, #0f172a 70%, #0a1224 100%);
   }

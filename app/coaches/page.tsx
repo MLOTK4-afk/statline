@@ -6,6 +6,8 @@ import { KanbanBoard } from "@/components/coaches/KanbanBoard";
 import { AddAthleteSearch } from "@/components/coaches/AddAthleteSearch";
 import { BoardTabs } from "@/components/coaches/BoardTabs";
 import { ShareBoardButton } from "@/components/coaches/ShareBoardButton";
+import { PhotoHeader } from "@/components/ui/PhotoHeader";
+import { Reveal } from "@/components/ui/Reveal";
 import { useToast } from "@/lib/toast/ToastContext";
 
 export default function CoachesPage() {
@@ -150,49 +152,49 @@ export default function CoachesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-4xl text-white">Scouting Boards</h1>
-          <p className="mt-1 text-slate-400">
-            Drag athletes between stages as your recruiting conversations
-            progress.
-          </p>
-        </div>
-        {activeBoard && (
-          <ShareBoardButton board={activeBoard} onToggle={toggleShare} />
-        )}
-      </div>
+    <div>
+      <PhotoHeader
+        eyebrow="Scouting"
+        title="Scouting Boards"
+        subtitle="Drag athletes between stages as your recruiting conversations progress."
+        photoUrl="/images/coaches-hockey.jpg"
+        photoPosition="center 30%"
+      />
 
-      <div className="mt-6">
-        <BoardTabs
-          boards={boards}
-          activeBoardId={activeBoardId ?? ""}
-          onSelect={setActiveBoardId}
-          onCreate={createBoard}
-          onRename={renameBoard}
-          onDelete={deleteBoard}
-        />
-      </div>
-
-      <div className="mt-6 max-w-lg">
-        <AddAthleteSearch athletes={athletes} onAdd={addAthlete} />
-      </div>
-
-      <div className="mt-8">
-        {activeBoard ? (
-          <KanbanBoard
-            board={activeBoard}
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <BoardTabs
             boards={boards}
-            athletes={athleteMap}
-            onMove={moveAthlete}
-            onNoteChange={updateNote}
-            onMoveToBoard={moveToBoard}
-            onRemove={removeAthlete}
+            activeBoardId={activeBoardId ?? ""}
+            onSelect={setActiveBoardId}
+            onCreate={createBoard}
+            onRename={renameBoard}
+            onDelete={deleteBoard}
           />
-        ) : (
-          <p className="text-slate-500">Loading board...</p>
-        )}
+          {activeBoard && (
+            <ShareBoardButton board={activeBoard} onToggle={toggleShare} />
+          )}
+        </div>
+
+        <div className="mt-6 max-w-lg">
+          <AddAthleteSearch athletes={athletes} onAdd={addAthlete} />
+        </div>
+
+        <Reveal className="mt-8">
+          {activeBoard ? (
+            <KanbanBoard
+              board={activeBoard}
+              boards={boards}
+              athletes={athleteMap}
+              onMove={moveAthlete}
+              onNoteChange={updateNote}
+              onMoveToBoard={moveToBoard}
+              onRemove={removeAthlete}
+            />
+          ) : (
+            <p className="text-slate-500">Loading board...</p>
+          )}
+        </Reveal>
       </div>
     </div>
   );
