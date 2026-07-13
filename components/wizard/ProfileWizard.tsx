@@ -93,6 +93,11 @@ export function ProfileWizard() {
         setCommitted(athlete.committed);
         setCommittedSchool(athlete.committedSchool ?? "");
         setPublished(athlete.published);
+        // Returning athletes already picked a level/sport when they first
+        // built their profile -- landing back on step 1 reads as "starting
+        // over." Skip straight to Details, where level/sport are now also
+        // editable, instead of walking them through steps 1-2 again.
+        setStep(3);
       })
       .catch(() => {});
   }, []);
@@ -144,8 +149,8 @@ export function ProfileWizard() {
 
   async function handleSubmit() {
     setError(null);
-    if (!name || !region || !contactEmail) {
-      setError("Name, region, and contact email are required.");
+    if (!level || !sport || !name || !region || !contactEmail) {
+      setError("Level, sport, name, region, and contact email are required.");
       return;
     }
 
@@ -353,6 +358,40 @@ export function ProfileWizard() {
               </label>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="level" required>
+                    Level
+                  </Label>
+                  <Select
+                    id="level"
+                    value={level ?? ""}
+                    onChange={(e) => setLevel(e.target.value as Level)}
+                  >
+                    <option value="">Select a level</option>
+                    {LEVELS.map((l) => (
+                      <option key={l.value} value={l.value}>
+                        {l.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="sport" required>
+                    Sport
+                  </Label>
+                  <Select
+                    id="sport"
+                    value={sport ?? ""}
+                    onChange={(e) => setSport(e.target.value)}
+                  >
+                    <option value="">Select a sport</option>
+                    {SPORTS.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
                 <div>
                   <Label htmlFor="name" required>
                     Full Name
