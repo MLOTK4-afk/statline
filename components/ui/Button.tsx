@@ -8,12 +8,12 @@ type Variant =
   | "outline"
   | "ghost"
   | "accent"
-  | "outlineAccent";
+  | "outlineAccent"
+  | "flare";
 type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
-  primary:
-    "bg-electric-500 text-white hover:bg-electric-600 shadow-lg shadow-electric-500/20",
+  primary: "btn-glow text-white",
   secondary: "bg-white text-navy-900 hover:bg-skyline-300",
   outline:
     "border border-skyline-300/40 text-white hover:border-skyline-300 hover:bg-white/5",
@@ -23,6 +23,9 @@ const variants: Record<Variant, string> = {
     "bg-intl-500 text-white hover:bg-intl-600 shadow-lg shadow-intl-500/20",
   outlineAccent:
     "border border-intl-300/40 text-white hover:border-intl-300 hover:bg-white/5",
+  // Tertiary violet->pink accent -- reserved for a couple of deliberate
+  // spots (e.g. the persistent nav CTA), not a replacement for primary.
+  flare: "btn-glow-flare text-white",
 };
 
 const sizes: Record<Size, string> = {

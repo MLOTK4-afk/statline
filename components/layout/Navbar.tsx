@@ -83,7 +83,7 @@ export function Navbar() {
               <LinkButton href="/login" variant="ghost" size="sm">
                 Sign In
               </LinkButton>
-              <LinkButton href="/build-profile" variant="primary" size="sm">
+              <LinkButton href="/build-profile" variant="flare" size="sm">
                 Build Profile
               </LinkButton>
             </>

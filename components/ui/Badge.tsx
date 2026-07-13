@@ -7,7 +7,7 @@ const tierStyles: Record<Tier, string> = {
   Silver: "bg-[#C0C0C0]/20 text-[#C0C0C0] border-[#C0C0C0]/50",
   Gold: "bg-[#D4AF37]/20 text-[#D4AF37] border-[#D4AF37]/50",
   Elite:
-    "bg-electric-500/20 text-electric-500 border-electric-500/60 shadow-[0_0_10px_rgba(59,130,246,0.7)]",
+    "bg-gradient-to-r from-violet-500/25 to-pink-500/25 text-fuchsia-300 border-fuchsia-400/50 shadow-[0_0_10px_rgba(217,70,239,0.6)]",
 };
 
 export function TierBadge({ tier }: { tier: Tier }) {

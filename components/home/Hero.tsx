@@ -3,6 +3,7 @@
 import { Suspense, useRef } from "react";
 import { Logo } from "@/components/layout/Logo";
 import { HeroCTAs } from "@/components/home/HeroCTAs";
+import { HeroStats } from "@/components/home/HeroStats";
 import { gsap, useGSAP } from "@/lib/gsap";
 
 export function Hero() {
@@ -19,6 +20,7 @@ export function Hero() {
       });
 
       tl.from(".hero-logo", { autoAlpha: 0, y: 16, duration: reduceMotion ? 0 : 0.7 })
+        .from(".hero-live-pill", { autoAlpha: 0, y: 10 }, "-=0.4")
         .from(".hero-tagline", { autoAlpha: 0, y: 10 }, "-=0.35")
         .from(
           ".hero-line",
@@ -26,7 +28,8 @@ export function Hero() {
           "-=0.45"
         )
         .from(".hero-copy", { autoAlpha: 0, y: 10 }, "-=0.5")
-        .from("#build-profile-section", { autoAlpha: 0, y: 12 }, "-=0.45");
+        .from(".hero-stats", { autoAlpha: 0, y: 10 }, "-=0.5")
+        .from("#build-profile-section", { autoAlpha: 0, y: 12 }, "-=0.4");
     },
     { scope: sectionRef }
   );
@@ -54,7 +57,18 @@ export function Hero() {
         <div className="hero-logo flex justify-center">
           <Logo height={80} />
         </div>
-        <p className="hero-tagline mt-6 font-heading text-sm uppercase tracking-[0.3em] text-skyline-300">
+        <div className="hero-live-pill mt-6 flex justify-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-fuchsia-400/40 bg-gradient-to-r from-violet-500/15 to-pink-500/15 px-4 py-1.5">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-fuchsia-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-fuchsia-400" />
+            </span>
+            <span className="font-heading text-xs uppercase tracking-[0.2em] text-fuchsia-300">
+              Coaches are looking now
+            </span>
+          </span>
+        </div>
+        <p className="hero-tagline mt-4 font-heading text-sm uppercase tracking-[0.3em] text-skyline-300">
           Data. Performance. Opportunity.
         </p>
         <h1 className="mt-4 text-5xl leading-[0.95] text-white sm:text-7xl">
@@ -65,6 +79,8 @@ export function Hero() {
           Statline turns your performance into a recruiting profile that
           coaches actually find — built on real data, not guesswork.
         </p>
+
+        <HeroStats />
 
         <Suspense fallback={null}>
           <HeroCTAs />

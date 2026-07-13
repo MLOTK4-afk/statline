@@ -65,7 +65,7 @@ export default function BrowsePage() {
     <div>
       <PhotoHeader
         eyebrow="The Directory"
-        title="Browse Athletes"
+        title={<span className="text-gradient-flare">Browse Athletes</span>}
         subtitle="Search and filter the full Statline athlete directory."
         photoUrl="/images/browse-basketball.jpg"
         photoPosition="center 35%"

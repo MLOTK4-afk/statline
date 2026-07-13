@@ -43,7 +43,7 @@ export function LeaderboardContent() {
     <div>
       <PhotoHeader
         eyebrow="Rankings"
-        title="Leaderboard"
+        title={<span className="text-gradient-flare">Leaderboard</span>}
         subtitle="Ranked by Statline tier and profile views."
         photoUrl="/images/leaderboard-football.jpg"
         photoPosition="center 55%"

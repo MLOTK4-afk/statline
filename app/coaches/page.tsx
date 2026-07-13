@@ -155,7 +155,7 @@ export default function CoachesPage() {
     <div>
       <PhotoHeader
         eyebrow="Scouting"
-        title="Scouting Boards"
+        title={<span className="text-gradient-flare">Scouting Boards</span>}
         subtitle="Drag athletes between stages as your recruiting conversations progress."
         photoUrl="/images/coaches-hockey.jpg"
         photoPosition="center 30%"
