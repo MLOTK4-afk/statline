@@ -12,6 +12,8 @@ import { ProfileFull } from "@/components/profile/ProfileFull";
 import { ProfileLivePreview } from "@/components/wizard/ProfileLivePreview";
 import { CompletenessMeter } from "@/components/wizard/CompletenessMeter";
 import { computeCompleteness } from "@/lib/completeness";
+import { DownloadCardButton } from "@/components/profile/DownloadCardButton";
+import type { FitScoreResult } from "@/lib/fitScore";
 import { cn } from "@/lib/cn";
 
 const STEPS = ["Level", "Sport", "Details"];
@@ -233,21 +235,7 @@ export function ProfileWizard() {
   }
 
   if (status === "done" && result) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-16">
-        <h1 className="text-center text-3xl text-white">
-          Your Profile is Live
-        </h1>
-        {error && (
-          <p className="mx-auto mt-3 max-w-lg text-center text-sm text-amber-400">
-            {error}
-          </p>
-        )}
-        <div className="mt-8">
-          <ProfileFull athlete={result} />
-        </div>
-      </div>
-    );
+    return <WizardSuccess result={result} error={error} />;
   }
 
   const livePreviewData = {
@@ -595,6 +583,52 @@ export function ProfileWizard() {
             <ProfileLivePreview data={livePreviewData} />
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function WizardSuccess({
+  result,
+  error,
+}: {
+  result: AthleteProfile;
+  error: string | null;
+}) {
+  // The wizard only has the freshly-created profile, not a precomputed Fit
+  // Score like the real profile page — fetch it client-side so the Player
+  // Card can include it, and just omit it if this fails.
+  const [fitScore, setFitScore] = useState<FitScoreResult | undefined>(undefined);
+
+  useEffect(() => {
+    fetch("/api/fit-score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ athleteId: result.id }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setFitScore(data ?? undefined))
+      .catch(() => setFitScore(undefined));
+  }, [result.id]);
+
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-16">
+      <h1 className="text-center text-3xl text-white">Your Profile is Live</h1>
+      {error && (
+        <p className="mx-auto mt-3 max-w-lg text-center text-sm text-amber-400">
+          {error}
+        </p>
+      )}
+      <div className="mt-6 flex justify-center">
+        <DownloadCardButton
+          athlete={result}
+          fitScore={fitScore}
+          label="Download Your Player Card"
+          variant="primary"
+        />
+      </div>
+      <div className="mt-8">
+        <ProfileFull athlete={result} />
       </div>
     </div>
   );

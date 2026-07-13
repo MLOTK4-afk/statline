@@ -13,6 +13,7 @@ import { SimilarAthletes } from "@/components/profile/SimilarAthletes";
 import { MomentumBadge } from "@/components/profile/MomentumBadge";
 import { MomentumSparkline } from "@/components/profile/MomentumSparkline";
 import { ActivityTimeline } from "@/components/profile/ActivityTimeline";
+import { DownloadCardButton } from "@/components/profile/DownloadCardButton";
 import { Card } from "@/components/ui/Card";
 
 export const dynamic = "force-dynamic";
@@ -65,7 +66,14 @@ export default async function AthletePage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mb-4 flex justify-end gap-2">
+      <div className="mb-4 flex flex-wrap justify-end gap-2">
+        {isOwner && (
+          <DownloadCardButton
+            athlete={finalAthlete}
+            fitScore={fitScore}
+            label="Player Card"
+          />
+        )}
         <ShareLinkButton athleteId={athlete.id} />
         <FollowButton athleteId={athlete.id} isOwner={isOwner} />
         <StarButton athleteId={athlete.id} />
