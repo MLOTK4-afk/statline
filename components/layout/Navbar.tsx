@@ -14,6 +14,11 @@ const NAV_LINKS = [
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/international", label: "International" },
   { href: "/coaches", label: "Coaches" },
+  // Reuses the wizard route -- it already detects an existing profile via
+  // the device-token cookie and pre-fills it for editing instead of
+  // starting a new one, so this is the same edit flow, just labeled for
+  // returning athletes rather than first-time signups.
+  { href: "/build-profile", label: "My Profile" },
 ];
 
 export function Navbar() {
@@ -148,7 +153,7 @@ export function Navbar() {
                   <LinkButton href="/login" variant="outline" size="sm">
                     Sign In
                   </LinkButton>
-                  <LinkButton href="/build-profile" variant="primary" size="sm">
+                  <LinkButton href="/build-profile" variant="flare" size="sm">
                     Build Profile
                   </LinkButton>
                 </>
