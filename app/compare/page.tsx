@@ -1,13 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { AthleteProfile } from "@/lib/types";
 import { useCompare } from "@/lib/compare/CompareContext";
-import { TierBadge } from "@/components/ui/Badge";
+import { TierBadge, Badge } from "@/components/ui/Badge";
 import { getAthleteTier } from "@/lib/tier";
 import { LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Card } from "@/components/ui/Card";
+import { CompareBarChart, type CompareBarEntry } from "@/components/compare/CompareBarChart";
+
+/** Fixed order, validated for CVD separation + contrast against navy-900 (see dataviz skill). Slot 1 matches the existing brand blue. */
+const ATHLETE_COLORS = ["#3B82F6", "#199e70", "#c98500"];
+
+function parseNumeric(value: string): number | null {
+  const parsed = parseFloat(value.replace(/[^0-9.]/g, ""));
+  return Number.isNaN(parsed) ? null : parsed;
+}
 
 export default function ComparePage() {
   const { selectedIds, clear } = useCompare();
@@ -21,6 +31,69 @@ export default function ComparePage() {
       )
       .catch(() => setAthletes([]));
   }, [selectedIds]);
+
+  const colorByAthlete = useMemo(() => {
+    const map = new Map<string, string>();
+    (athletes ?? []).forEach((a, i) => map.set(a.id, ATHLETE_COLORS[i]));
+    return map;
+  }, [athletes]);
+
+  const { sharedGpaChart, sharedStatCharts, uniqueStatsByAthlete } = useMemo(() => {
+    if (!athletes) {
+      return {
+        sharedGpaChart: null as CompareBarEntry[] | null,
+        sharedStatCharts: [] as { label: string; entries: CompareBarEntry[] }[],
+        uniqueStatsByAthlete: new Map<string, [string, string][]>(),
+      };
+    }
+
+    const gpaEntries: CompareBarEntry[] = athletes
+      .map((a) => {
+        const value = a.gpa ? parseNumeric(a.gpa) : null;
+        return value === null
+          ? null
+          : { name: a.name, value, displayValue: a.gpa!, color: colorByAthlete.get(a.id)! };
+      })
+      .filter((e): e is CompareBarEntry => e !== null);
+    const sharedGpaChart = gpaEntries.length >= 2 ? gpaEntries : null;
+
+    const allLabels = Array.from(new Set(athletes.flatMap((a) => Object.keys(a.stats))));
+    const sharedStatCharts: { label: string; entries: CompareBarEntry[] }[] = [];
+    const uniqueStatsByAthlete = new Map<string, [string, string][]>();
+    athletes.forEach((a) => uniqueStatsByAthlete.set(a.id, []));
+
+    for (const label of allLabels) {
+      const entries: CompareBarEntry[] = [];
+      const nonNumericAthletes: AthleteProfile[] = [];
+      for (const a of athletes) {
+        const raw = a.stats[label];
+        if (raw === undefined) continue;
+        const value = parseNumeric(raw);
+        if (value !== null) {
+          entries.push({ name: a.name, value, displayValue: raw, color: colorByAthlete.get(a.id)! });
+        } else {
+          nonNumericAthletes.push(a);
+        }
+      }
+      // Chart it if at least 2 athletes have a numeric value -- an athlete
+      // whose value didn't parse still gets it listed under "Other Stats"
+      // rather than silently dropped.
+      if (entries.length >= 2) {
+        sharedStatCharts.push({ label, entries });
+        for (const a of nonNumericAthletes) {
+          uniqueStatsByAthlete.get(a.id)!.push([label, a.stats[label]]);
+        }
+      } else {
+        for (const a of athletes) {
+          if (a.stats[label] !== undefined) {
+            uniqueStatsByAthlete.get(a.id)!.push([label, a.stats[label]]);
+          }
+        }
+      }
+    }
+
+    return { sharedGpaChart, sharedStatCharts, uniqueStatsByAthlete };
+  }, [athletes, colorByAthlete]);
 
   if (selectedIds.length === 0) {
     return (
@@ -38,10 +111,6 @@ export default function ComparePage() {
     return <p className="px-4 py-16 text-center text-slate-500">Loading...</p>;
   }
 
-  const allStatLabels = Array.from(
-    new Set(athletes.flatMap((a) => Object.keys(a.stats)))
-  );
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -55,71 +124,137 @@ export default function ComparePage() {
         </button>
       </div>
 
-      <div className="mt-8 overflow-x-auto">
-        <table className="w-full min-w-[600px] border-collapse text-left">
-          <thead>
-            <tr>
-              <th className="w-40 pb-4 text-xs uppercase tracking-wider text-slate-500">
-                &nbsp;
-              </th>
-              {athletes.map((a) => (
-                <th key={a.id} className="pb-4 pl-4">
-                  <Link
-                    href={`/athletes/${a.id}`}
-                    className="font-heading text-xl text-white hover:text-skyline-300"
-                  >
-                    {a.name}
-                  </Link>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/10">
-            <tr>
-              <td className="py-3 text-sm text-slate-500">Tier</td>
-              {athletes.map((a) => (
-                <td key={a.id} className="py-3 pl-4">
-                  <TierBadge tier={getAthleteTier(a)} />
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td className="py-3 text-sm text-slate-500">Sport</td>
-              {athletes.map((a) => (
-                <td key={a.id} className="py-3 pl-4 text-sm text-slate-200">
-                  {a.sport}
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td className="py-3 text-sm text-slate-500">Level</td>
-              {athletes.map((a) => (
-                <td key={a.id} className="py-3 pl-4 text-sm text-slate-200">
-                  {a.level.replace("-", " ")}
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td className="py-3 text-sm text-slate-500">Region</td>
-              {athletes.map((a) => (
-                <td key={a.id} className="py-3 pl-4 text-sm text-slate-200">
-                  {a.region}
-                </td>
-              ))}
-            </tr>
-            {allStatLabels.map((label) => (
-              <tr key={label}>
-                <td className="py-3 text-sm text-slate-500">{label}</td>
-                {athletes.map((a) => (
-                  <td key={a.id} className="py-3 pl-4 text-sm text-slate-200">
-                    {a.stats[label] ?? "—"}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Identity header -- also serves as the persistent legend for every chart below */}
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {athletes.map((a) => (
+          <Card key={a.id} className="p-5" style={{ borderTopColor: colorByAthlete.get(a.id), borderTopWidth: 3 }}>
+            <div className="flex items-start gap-2">
+              <span
+                className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: colorByAthlete.get(a.id) }}
+                aria-hidden
+              />
+              <div>
+                <Link
+                  href={`/athletes/${a.id}`}
+                  className="font-heading text-xl text-white hover:text-skyline-300"
+                >
+                  {a.name}
+                </Link>
+                <p className="mt-0.5 text-sm text-slate-400">
+                  {a.sport} &middot; {a.region}
+                  {a.gradYear ? ` · Class of ${a.gradYear}` : ""}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <TierBadge tier={getAthleteTier(a)} />
+              <Badge>{a.level.replace("-", " ")}</Badge>
+              {a.gpa && <Badge>GPA {a.gpa}</Badge>}
+              {a.committed ? (
+                <Badge className="border-electric-500/40 text-electric-500">
+                  Committed{a.committedSchool ? ` — ${a.committedSchool}` : ""}
+                </Badge>
+              ) : (
+                <Badge>Uncommitted</Badge>
+              )}
+            </div>
+          </Card>
+        ))}
       </div>
+
+      {/* Comparative charts -- only for stats every selected athlete reported, so a chart never implies a missing value is zero */}
+      {(sharedGpaChart || sharedStatCharts.length > 0) && (
+        <Card className="mt-8 p-6">
+          <h2 className="font-heading text-lg text-white">Head-to-Head Stats</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Bars compare raw reported values, not who&apos;s &ldquo;better&rdquo;
+            — direction (higher vs. lower is best) varies by stat.
+          </p>
+          <div className="mt-5 space-y-5">
+            {sharedGpaChart && <CompareBarChart label="GPA" entries={sharedGpaChart} />}
+            {sharedStatCharts.map(({ label, entries }) => (
+              <CompareBarChart key={label} label={label} entries={entries} />
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Stats only some athletes reported -- kept visible per-athlete rather than dropped */}
+      {athletes.some((a) => (uniqueStatsByAthlete.get(a.id) ?? []).length > 0) && (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {athletes.map((a) => {
+            const unique = uniqueStatsByAthlete.get(a.id) ?? [];
+            if (unique.length === 0) return null;
+            return (
+              <Card key={a.id} className="p-5">
+                <h3 className="text-sm uppercase tracking-wider text-slate-400">
+                  {a.name.split(" ")[0]}&apos;s Other Stats
+                </h3>
+                <div className="mt-3 space-y-1.5">
+                  {unique.map(([label, value]) => (
+                    <div key={label} className="flex justify-between gap-4 text-sm">
+                      <span className="text-slate-500">{label}</span>
+                      <span className="text-slate-200">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Achievements */}
+      {athletes.some((a) => a.achievements.length > 0) && (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {athletes.map((a) => (
+            <Card key={a.id} className="p-5">
+              <h3 className="text-sm uppercase tracking-wider text-slate-400">
+                Achievements
+              </h3>
+              {a.achievements.length > 0 ? (
+                <ul className="mt-3 space-y-1.5">
+                  {a.achievements.map((ach) => (
+                    <li key={ach} className="text-sm text-slate-300">
+                      &bull; {ach}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-slate-600">None reported.</p>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Scouting reports side by side -- the qualitative "description" a coach actually reads */}
+      {athletes.some((a) => a.scoutingReport) && (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {athletes.map((a) => (
+            <Card key={a.id} className="p-5">
+              <h3 className="text-sm uppercase tracking-wider text-slate-400">
+                Scouting Report
+              </h3>
+              {a.scoutingReport ? (
+                <div className="mt-3">
+                  <p className="font-heading text-base italic text-skyline-300">
+                    &ldquo;{a.scoutingReport.tagline}&rdquo;
+                  </p>
+                  <p className="mt-2 text-sm text-slate-300">
+                    {a.scoutingReport.summary}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-slate-600">
+                  No scouting report yet.
+                </p>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

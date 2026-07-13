@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { authOptions } from "@/lib/auth";
 import { store } from "@/lib/storage";
@@ -39,10 +40,20 @@ export default async function AdminPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="text-4xl text-white">Admin Analytics</h1>
-      <p className="mt-1 text-slate-400">
-        Platform-wide activity across Statline.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-4xl text-white">Admin Analytics</h1>
+          <p className="mt-1 text-slate-400">
+            Platform-wide activity across Statline.
+          </p>
+        </div>
+        <Link
+          href="/admin/roster"
+          className="rounded-md border border-white/20 px-3 py-1.5 text-sm font-semibold text-slate-200 hover:border-white/40"
+        >
+          Roster Overview →
+        </Link>
+      </div>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatTile label="Total Page Views" value={summary.pageViews} />

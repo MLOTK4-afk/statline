@@ -1,3 +1,5 @@
+import type { AthleteProfile } from "@/lib/types";
+
 export interface CompletenessInput {
   name: string;
   sport: string | null;
@@ -64,4 +66,26 @@ export function computeCompleteness(
   }
 
   return { percent, missing };
+}
+
+/**
+ * Adapter from a stored AthleteProfile to CompletenessInput, so callers that
+ * only have the persisted record (Momentum, Admin Roster Overview) reuse
+ * this exact algorithm instead of re-deriving their own version of "what
+ * counts as a complete profile."
+ */
+export function computeAthleteCompleteness(
+  athlete: AthleteProfile
+): CompletenessResult {
+  return computeCompleteness({
+    name: athlete.name,
+    sport: athlete.sport,
+    level: athlete.level,
+    region: athlete.region,
+    hasStats: Object.keys(athlete.stats).length > 0,
+    highlightUrl: athlete.highlightUrl ?? "",
+    achievements: athlete.achievements,
+    contactEmail: athlete.contactEmail,
+    endorsementQuote: athlete.endorsement?.quote ?? "",
+  });
 }

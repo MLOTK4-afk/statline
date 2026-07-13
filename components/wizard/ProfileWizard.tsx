@@ -31,6 +31,9 @@ export function ProfileWizard() {
   const [gpa, setGpa] = useState("");
   const [statRows, setStatRows] = useState([{ label: "", value: "" }]);
   const [highlightUrl, setHighlightUrl] = useState("");
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(null);
+  const [bannerError, setBannerError] = useState<string | null>(null);
   const [achievements, setAchievements] = useState<string[]>([""]);
   const [previousSeasonStats, setPreviousSeasonStats] = useState("");
   const [combineRows, setCombineRows] = useState([{ label: "", value: "" }]);
@@ -73,6 +76,7 @@ export function ProfileWizard() {
         }));
         setStatRows(rows.length ? rows : [{ label: "", value: "" }]);
         setHighlightUrl(athlete.highlightUrl ?? "");
+        setBannerPreviewUrl(athlete.bannerUrl ?? null);
         setAchievements(
           athlete.achievements.length ? athlete.achievements : [""]
         );
@@ -102,6 +106,39 @@ export function ProfileWizard() {
     contactEmail,
     endorsementQuote,
   });
+
+  const BANNER_TYPES = ["image/jpeg", "image/png", "image/webp"];
+  const BANNER_MAX_BYTES = 5 * 1024 * 1024;
+
+  function handleBannerSelect(file: File | null) {
+    setBannerError(null);
+    if (!file) return;
+    if (!BANNER_TYPES.includes(file.type)) {
+      setBannerError("Use a JPG, PNG, or WebP image.");
+      return;
+    }
+    if (file.size > BANNER_MAX_BYTES) {
+      setBannerError("Image is too large (5MB max).");
+      return;
+    }
+    setBannerFile(file);
+    setBannerPreviewUrl(URL.createObjectURL(file));
+  }
+
+  async function uploadBannerIfStaged(athleteId: string) {
+    if (!bannerFile) return null;
+    const formData = new FormData();
+    formData.append("file", bannerFile);
+    const res = await fetch(`/api/athletes/${athleteId}/banner`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) {
+      setBannerError("Profile saved, but the banner upload failed.");
+      return null;
+    }
+    return (await res.json()) as AthleteProfile;
+  }
 
   async function handleSubmit() {
     setError(null);
@@ -176,7 +213,8 @@ export function ProfileWizard() {
 
       if (!reportRes.ok) {
         const data = await reportRes.json();
-        setResult(athlete);
+        const withBanner = await uploadBannerIfStaged(athlete.id);
+        setResult(withBanner ?? athlete);
         setStatus("done");
         setError(
           `Profile saved, but the AI scouting report could not be generated: ${data.error ?? "unknown error"}`
@@ -185,7 +223,8 @@ export function ProfileWizard() {
       }
 
       const updated: AthleteProfile = await reportRes.json();
-      setResult(updated);
+      const withBanner = await uploadBannerIfStaged(updated.id);
+      setResult(withBanner ?? updated);
       setStatus("done");
     } catch (err) {
       setStatus("idle");
@@ -402,6 +441,28 @@ export function ProfileWizard() {
                   value={highlightUrl}
                   onChange={(e) => setHighlightUrl(e.target.value)}
                 />
+              </div>
+
+              <div className="mt-6">
+                <Label htmlFor="banner">Profile Banner</Label>
+                <p className="mb-2 text-xs text-slate-500">
+                  A wide photo shown at the top of your profile. JPG, PNG, or
+                  WebP, 5MB max.
+                </p>
+                {bannerPreviewUrl && (
+                  <div
+                    className="mb-3 h-32 w-full rounded-lg bg-cover bg-center"
+                    style={{ backgroundImage: `url(${bannerPreviewUrl})` }}
+                  />
+                )}
+                <input
+                  id="banner"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => handleBannerSelect(e.target.files?.[0] ?? null)}
+                  className="block w-full text-sm text-slate-400 file:mr-4 file:rounded-md file:border-0 file:bg-electric-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-electric-600"
+                />
+                {bannerError && <FieldError>{bannerError}</FieldError>}
               </div>
 
               <div className="mt-6">

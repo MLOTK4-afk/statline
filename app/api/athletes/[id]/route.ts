@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { store } from "@/lib/storage";
 import { getDeviceToken } from "@/lib/deviceToken";
+import { canEditAthlete } from "@/lib/canEditAthlete";
 
 export async function GET(
   _req: Request,
@@ -16,12 +15,6 @@ export async function GET(
   return NextResponse.json(athlete);
 }
 
-async function canEdit(ownerToken: string | null, athleteOwnerToken: string | null) {
-  if (ownerToken && ownerToken === athleteOwnerToken) return true;
-  const session = await getServerSession(authOptions);
-  return session?.user?.role === "admin";
-}
-
 export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }
@@ -32,12 +25,13 @@ export async function PATCH(
   }
 
   const ownerToken = await getDeviceToken();
-  if (!(await canEdit(ownerToken, existing.ownerToken))) {
+  if (!(await canEditAthlete(ownerToken, existing.ownerToken))) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
   const body = await req.json();
   const updated = await store.updateAthlete(params.id, body);
+  await store.recordEvent("profile_updated", { athleteId: params.id });
   return NextResponse.json(updated);
 }
 
@@ -51,7 +45,7 @@ export async function DELETE(
   }
 
   const ownerToken = await getDeviceToken();
-  if (!(await canEdit(ownerToken, existing.ownerToken))) {
+  if (!(await canEditAthlete(ownerToken, existing.ownerToken))) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 

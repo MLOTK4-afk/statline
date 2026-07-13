@@ -2,6 +2,7 @@ import { v4 as uuid } from "uuid";
 import { readJson, writeJson } from "./fileStore";
 import { createClient } from "@/lib/supabase/server";
 import type {
+  ActivityEvent,
   AnalyticsEvent,
   AthleteProfile,
   BoardCard,
@@ -12,6 +13,8 @@ import type {
   ScoutingBoard,
   UserRecord,
 } from "@/lib/types";
+import type { DivisionBenchmark } from "@/lib/fitScore";
+import type { MomentumLabel } from "@/lib/momentum";
 
 /**
  * Every route/component talks to data through this interface only.
@@ -128,6 +131,43 @@ export interface StatlineStore {
     byType: { type: string; count: number }[];
     recent: AnalyticsEvent[];
   }>;
+
+  /** Reference data for Fit Score. Omit `sport` to fetch every row. */
+  getDivisionBenchmarks(sport?: string): Promise<DivisionBenchmark[]>;
+
+  /** Raw event timestamps for one athlete, since a given ISO date -- used by lib/momentum.ts to bucket into windows itself rather than round-tripping to Postgres per window. */
+  getEventTimestampsForAthlete(
+    type: string,
+    athleteId: string,
+    sinceIso: string
+  ): Promise<string[]>;
+  getStarTimestampsForAthlete(
+    athleteId: string,
+    sinceIso: string
+  ): Promise<string[]>;
+
+  /** Assembled from analytics_events, stars, and board_cards -- see ActivityEvent doc comment. */
+  getActivityTimeline(
+    athleteId: string,
+    limit: number
+  ): Promise<ActivityEvent[]>;
+
+  getCachedMomentum(
+    athleteId: string
+  ): Promise<{ label: MomentumLabel; trendPercent: number; computedAt: string } | null>;
+  setCachedMomentum(
+    athleteId: string,
+    result: { label: MomentumLabel; trendPercent: number }
+  ): Promise<void>;
+
+  /**
+   * The single most-advanced outreach stage (offerReceived > replied >
+   * contacted > toContact) each athlete has reached across every coach's
+   * board, in one query for the whole roster -- used by the Admin Roster
+   * Overview table, which needs this for every row at once rather than
+   * one query per athlete.
+   */
+  getOutreachStatusMap(): Promise<Record<string, BoardColumnKey>>;
 }
 
 const USERS_FILE = "users";
@@ -157,6 +197,7 @@ function rowToAthlete(row: any): AthleteProfile {
     gpa: row.gpa ?? undefined,
     stats: row.stats ?? {},
     highlightUrl: row.highlight_url ?? undefined,
+    bannerUrl: row.banner_url ?? undefined,
     achievements: row.achievements ?? [],
     contactEmail: row.contact_email,
     contactPhone: row.contact_phone ?? undefined,
@@ -195,6 +236,7 @@ function athleteToRow(
   if (data.gpa !== undefined) row.gpa = data.gpa;
   if (data.stats !== undefined) row.stats = data.stats;
   if (data.highlightUrl !== undefined) row.highlight_url = data.highlightUrl;
+  if (data.bannerUrl !== undefined) row.banner_url = data.bannerUrl;
   if (data.achievements !== undefined) row.achievements = data.achievements;
   if (data.contactEmail !== undefined) row.contact_email = data.contactEmail;
   if (data.contactPhone !== undefined) row.contact_phone = data.contactPhone;
@@ -958,6 +1000,168 @@ class SupabaseStore implements StatlineStore {
       byType,
       recent: (recentRes.data ?? []).map(rowToEvent),
     };
+  }
+
+  async getDivisionBenchmarks(sport?: string): Promise<DivisionBenchmark[]> {
+    const supabase = await createClient();
+    let query = supabase
+      .from("division_benchmarks")
+      .select("sport, division, stat_name, median_value, p75_value");
+    if (sport) query = query.eq("sport", sport);
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data ?? []).map((row: any) => ({
+      sport: row.sport,
+      division: row.division,
+      statName: row.stat_name,
+      medianValue: Number(row.median_value),
+      p75Value: Number(row.p75_value),
+    }));
+  }
+
+  async getEventTimestampsForAthlete(
+    type: string,
+    athleteId: string,
+    sinceIso: string
+  ): Promise<string[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("analytics_events")
+      .select("ts")
+      .eq("type", type)
+      .filter("meta->>athleteId", "eq", athleteId)
+      .gte("ts", sinceIso);
+    if (error) throw error;
+    return (data ?? []).map((row: any) => row.ts);
+  }
+
+  async getStarTimestampsForAthlete(
+    athleteId: string,
+    sinceIso: string
+  ): Promise<string[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("stars")
+      .select("created_at")
+      .eq("athlete_id", athleteId)
+      .gte("created_at", sinceIso);
+    if (error) throw error;
+    return (data ?? []).map((row: any) => row.created_at);
+  }
+
+  async getActivityTimeline(
+    athleteId: string,
+    limit: number
+  ): Promise<ActivityEvent[]> {
+    const supabase = await createClient();
+    const [viewedRes, builtRes, updatedRes, starredRes, boardRes] =
+      await Promise.all([
+        supabase
+          .from("analytics_events")
+          .select("ts")
+          .eq("type", "profile_view")
+          .filter("meta->>athleteId", "eq", athleteId),
+        supabase
+          .from("analytics_events")
+          .select("ts")
+          .eq("type", "profile_built")
+          .filter("meta->>athleteId", "eq", athleteId),
+        supabase
+          .from("analytics_events")
+          .select("ts")
+          .eq("type", "profile_updated")
+          .filter("meta->>athleteId", "eq", athleteId),
+        supabase.from("stars").select("created_at").eq("athlete_id", athleteId),
+        supabase
+          .from("board_cards")
+          .select("added_at")
+          .eq("athlete_id", athleteId),
+      ]);
+    for (const res of [viewedRes, builtRes, updatedRes, starredRes, boardRes]) {
+      if (res.error) throw res.error;
+    }
+
+    const events: ActivityEvent[] = [
+      ...(viewedRes.data ?? []).map((r: any) => ({
+        type: "profile_viewed" as const,
+        ts: r.ts,
+      })),
+      ...(builtRes.data ?? []).map((r: any) => ({
+        type: "profile_built" as const,
+        ts: r.ts,
+      })),
+      ...(updatedRes.data ?? []).map((r: any) => ({
+        type: "profile_updated" as const,
+        ts: r.ts,
+      })),
+      ...(starredRes.data ?? []).map((r: any) => ({
+        type: "starred" as const,
+        ts: r.created_at,
+        detail: "A coach starred this profile",
+      })),
+      ...(boardRes.data ?? []).map((r: any) => ({
+        type: "added_to_board" as const,
+        ts: r.added_at,
+        detail: "Added to a coach's scouting board",
+      })),
+    ];
+
+    return events
+      .sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime())
+      .slice(0, limit);
+  }
+
+  async getCachedMomentum(athleteId: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("momentum_cache")
+      .select("label, trend_percent, computed_at")
+      .eq("athlete_id", athleteId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return {
+      label: data.label as MomentumLabel,
+      trendPercent: Number(data.trend_percent),
+      computedAt: data.computed_at,
+    };
+  }
+
+  async setCachedMomentum(
+    athleteId: string,
+    result: { label: MomentumLabel; trendPercent: number }
+  ): Promise<void> {
+    const supabase = await createClient();
+    const { error } = await supabase.from("momentum_cache").upsert({
+      athlete_id: athleteId,
+      label: result.label,
+      trend_percent: result.trendPercent,
+      computed_at: new Date().toISOString(),
+    });
+    if (error) throw error;
+  }
+
+  async getOutreachStatusMap(): Promise<Record<string, BoardColumnKey>> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("board_cards")
+      .select("athlete_id, column_key");
+    if (error) throw error;
+
+    const rank: Record<BoardColumnKey, number> = {
+      offerReceived: 4,
+      replied: 3,
+      contacted: 2,
+      toContact: 1,
+    };
+    const result: Record<string, BoardColumnKey> = {};
+    for (const row of data ?? []) {
+      const current = result[row.athlete_id];
+      if (!current || rank[row.column_key as BoardColumnKey] > rank[current]) {
+        result[row.athlete_id] = row.column_key as BoardColumnKey;
+      }
+    }
+    return result;
   }
 }
 

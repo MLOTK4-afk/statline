@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { AthleteProfile } from "@/lib/types";
+import type { DivisionBenchmark } from "@/lib/fitScore";
+import { calculateFitScore } from "@/lib/fitScore";
 import { FilterBar, type Filters } from "@/components/browse/FilterBar";
 import { SavedSearches } from "@/components/browse/SavedSearches";
 import { ProfileCard } from "@/components/profile/ProfileCard";
@@ -16,22 +18,29 @@ const EMPTY_FILTERS: Filters = {
   region: "",
   level: "",
   committed: "",
+  minFitScore: "",
 };
 
 export default function BrowsePage() {
   const [athletes, setAthletes] = useState<AthleteProfile[] | null>(null);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [benchmarks, setBenchmarks] = useState<DivisionBenchmark[]>([]);
 
   useEffect(() => {
     fetch("/api/athletes?international=false")
       .then((res) => res.json())
       .then(setAthletes)
       .catch(() => setAthletes([]));
+    fetch("/api/division-benchmarks")
+      .then((res) => (res.ok ? res.json() : []))
+      .then(setBenchmarks)
+      .catch(() => {});
   }, []);
 
   const filtered = useMemo(() => {
     if (!athletes) return [];
     const needle = filters.q.trim().toLowerCase();
+    const minFitScore = filters.minFitScore ? Number(filters.minFitScore) : 0;
     return athletes.filter((a) => {
       if (filters.sport && a.sport !== filters.sport) return false;
       if (filters.region && a.region !== filters.region) return false;
@@ -39,13 +48,18 @@ export default function BrowsePage() {
       if (filters.committed === "true" && !a.committed) return false;
       if (filters.committed === "false" && a.committed) return false;
       if (
+        minFitScore > 0 &&
+        calculateFitScore(a, benchmarks).score < minFitScore
+      )
+        return false;
+      if (
         needle &&
         !`${a.name} ${a.sport} ${a.region}`.toLowerCase().includes(needle)
       )
         return false;
       return true;
     });
-  }, [athletes, filters]);
+  }, [athletes, filters, benchmarks]);
 
   return (
     <div>

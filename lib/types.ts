@@ -48,6 +48,8 @@ export interface AthleteProfile {
   gpa?: string;
   stats: Record<string, string>;
   highlightUrl?: string;
+  /** Public URL of an uploaded profile banner image (Supabase Storage). */
+  bannerUrl?: string;
   achievements: string[];
   contactEmail: string;
   contactPhone?: string;
@@ -172,6 +174,25 @@ export interface AnalyticsEvent {
   type: string;
   ts: string;
   meta?: Record<string, string>;
+}
+
+/**
+ * A single entry in an athlete's Activity Log timeline. Assembled by
+ * store.getActivityTimeline() from existing tables (analytics_events,
+ * stars, board_cards) -- there is no separate activity_log table, so this
+ * always reads the same source of truth those other features use. Never
+ * carries a coach's owner_token; the app never associates outreach actions
+ * with a real coach identity, so there's nothing to redact beyond that.
+ */
+export interface ActivityEvent {
+  type:
+    | "profile_viewed"
+    | "profile_built"
+    | "profile_updated"
+    | "starred"
+    | "added_to_board";
+  ts: string;
+  detail?: string;
 }
 
 export interface AnalyticsData {

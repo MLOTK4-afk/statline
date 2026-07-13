@@ -1,12 +1,34 @@
 import type { AthleteProfile } from "@/lib/types";
+import type { FitScoreResult } from "@/lib/fitScore";
 import { Card } from "@/components/ui/Card";
 import { Badge, TierBadge } from "@/components/ui/Badge";
 import { StatCardGrid } from "@/components/profile/StatCardGrid";
+import { FitScoreCard } from "@/components/profile/FitScoreCard";
 import { getAthleteTier } from "@/lib/tier";
+import { getSportAccent } from "@/lib/sportTheme";
 
-export function ProfileFull({ athlete }: { athlete: AthleteProfile }) {
+export function ProfileFull({
+  athlete,
+  fitScore,
+}: {
+  athlete: AthleteProfile;
+  fitScore?: FitScoreResult;
+}) {
+  const accent = getSportAccent(athlete.sport);
+
   return (
-    <Card className="angular-bg overflow-hidden p-8">
+    <Card
+      className="angular-bg overflow-hidden p-8"
+      style={{ borderTopColor: accent, borderTopWidth: 3 }}
+    >
+      {athlete.bannerUrl && (
+        <div
+          className="-mx-8 -mt-8 mb-8 h-48 bg-cover bg-center sm:h-64"
+          style={{
+            backgroundImage: `linear-gradient(180deg, ${accent}33 0%, rgba(15,23,42,0.92) 100%), url(${athlete.bannerUrl})`,
+          }}
+        />
+      )}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <div className="flex flex-wrap items-center gap-3">
@@ -42,7 +64,8 @@ export function ProfileFull({ athlete }: { athlete: AthleteProfile }) {
             href={athlete.highlightUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex shrink-0 items-center gap-2 rounded-md bg-electric-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-electric-600"
+            className="inline-flex shrink-0 items-center gap-2 rounded-md px-5 py-2.5 text-sm font-semibold text-white"
+            style={{ backgroundColor: accent }}
           >
             Watch Highlight Film
           </a>
@@ -202,6 +225,8 @@ export function ProfileFull({ athlete }: { athlete: AthleteProfile }) {
           </p>
         </div>
       )}
+
+      {fitScore && <FitScoreCard result={fitScore} />}
     </Card>
   );
 }

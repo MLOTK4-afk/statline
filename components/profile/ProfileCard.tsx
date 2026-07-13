@@ -4,7 +4,9 @@ import Link from "next/link";
 import type { AthleteProfile } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { Badge, TierBadge } from "@/components/ui/Badge";
+import { MomentumBadgeClient } from "@/components/profile/MomentumBadgeClient";
 import { getAthleteTier } from "@/lib/tier";
+import { getSportAccent } from "@/lib/sportTheme";
 import { useCompare } from "@/lib/compare/CompareContext";
 import { cn } from "@/lib/cn";
 
@@ -12,10 +14,17 @@ export function ProfileCard({ athlete }: { athlete: AthleteProfile }) {
   const topStats = Object.entries(athlete.stats).slice(0, 3);
   const { toggle, isSelected, isFull } = useCompare();
   const selected = isSelected(athlete.id);
+  // "80" suffix bakes ~50% alpha into the hex so the Tailwind arbitrary
+  // color value doesn't need an opacity modifier (which can't compute alpha
+  // from a CSS var() at build time).
+  const hoverAccent = `${getSportAccent(athlete.sport)}80`;
 
   return (
     <Link href={`/athletes/${athlete.id}`} className="group block">
-      <Card className="relative h-full overflow-hidden p-5 transition-transform duration-200 group-hover:-translate-y-1 group-hover:border-electric-500/50">
+      <Card
+        className="relative h-full overflow-hidden p-5 transition-transform duration-200 group-hover:-translate-y-1 group-hover:border-[var(--hover-accent)]"
+        style={{ ["--hover-accent" as string]: hoverAccent }}
+      >
         <div className="flex items-start justify-between gap-2">
           <div>
             <h3 className="font-heading text-2xl leading-tight text-white">
@@ -51,6 +60,7 @@ export function ProfileCard({ athlete }: { athlete: AthleteProfile }) {
 
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge>{athlete.level.replace("-", " ")}</Badge>
+          {!athlete.isExample && <MomentumBadgeClient athleteId={athlete.id} />}
           {athlete.committed ? (
             <Badge className="border-electric-500/40 text-electric-500">
               Committed{athlete.committedSchool ? ` — ${athlete.committedSchool}` : ""}

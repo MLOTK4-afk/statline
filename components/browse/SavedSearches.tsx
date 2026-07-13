@@ -67,6 +67,7 @@ export function SavedSearches({
                 region: s.filters.region ?? "",
                 level: s.filters.level ?? "",
                 committed: s.filters.committed ?? "",
+                minFitScore: s.filters.minFitScore ?? "",
               })
             }
             className="hover:text-white"
