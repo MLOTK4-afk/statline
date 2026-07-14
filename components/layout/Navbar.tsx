@@ -70,7 +70,7 @@ export function Navbar() {
           <GlobalSearch />
           <Link
             href="/athletes/example"
-            className="text-sm text-slate-500 underline decoration-dotted underline-offset-4 transition-colors hover:text-slate-300"
+            className="text-sm font-medium text-orange-400 transition-colors hover:text-orange-300"
           >
             See an example profile
           </Link>
@@ -139,7 +139,7 @@ export function Navbar() {
             <Link
               href="/athletes/example"
               onClick={() => setOpen(false)}
-              className="text-sm text-slate-500 underline decoration-dotted underline-offset-4 hover:text-slate-300"
+              className="text-sm font-medium text-orange-400 hover:text-orange-300"
             >
               See an example profile
             </Link>

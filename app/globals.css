@@ -109,6 +109,30 @@
   }
 
   /*
+   * Ambient glow for cards/panels site-wide, layered on top of the
+   * existing shadow-xl/shadow-black utility (kept for depth) rather than
+   * replacing it. Soft electric-blue by default since that's the primary
+   * brand hue; brightens slightly on hover so surfaces feel alive without
+   * competing with per-sport accent borders that already exist on some
+   * cards.
+   */
+  .card-glow {
+    transition: box-shadow 200ms ease, border-color 200ms ease;
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.2),
+      0 8px 10px -6px rgba(0, 0, 0, 0.2),
+      0 0 24px -4px rgba(59, 130, 246, 0.18);
+  }
+
+  .card-glow:hover {
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.2),
+      0 8px 10px -6px rgba(0, 0, 0, 0.2),
+      0 0 32px -4px rgba(59, 130, 246, 0.32);
+    border-color: rgba(147, 197, 253, 0.25);
+  }
+
+  /*
    * Primary CTA treatment — a richer two-stop gradient plus a soft
    * ambient glow (vs. the old flat fill) so the main action reads as
    * premium/native rather than a plain web button. Stays within the
@@ -118,8 +142,8 @@
   .btn-glow {
     background-image: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%);
     box-shadow:
-      0 8px 30px -8px rgba(79, 70, 229, 0.55),
-      0 2px 10px rgba(59, 130, 246, 0.35);
+      0 8px 34px -6px rgba(79, 70, 229, 0.65),
+      0 2px 14px rgba(59, 130, 246, 0.45);
     transition:
       transform 150ms ease,
       box-shadow 150ms ease,
@@ -128,8 +152,8 @@
 
   .btn-glow:hover {
     box-shadow:
-      0 12px 38px -6px rgba(79, 70, 229, 0.7),
-      0 4px 16px rgba(59, 130, 246, 0.45);
+      0 14px 42px -4px rgba(79, 70, 229, 0.8),
+      0 4px 20px rgba(59, 130, 246, 0.55);
     transform: translateY(-1px);
   }
 
@@ -141,8 +165,8 @@
   .btn-glow-flare {
     background-image: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
     box-shadow:
-      0 8px 30px -8px rgba(236, 72, 153, 0.55),
-      0 2px 10px rgba(139, 92, 246, 0.35);
+      0 8px 34px -6px rgba(236, 72, 153, 0.65),
+      0 2px 14px rgba(139, 92, 246, 0.45);
     transition:
       transform 150ms ease,
       box-shadow 150ms ease,
@@ -151,8 +175,8 @@
 
   .btn-glow-flare:hover {
     box-shadow:
-      0 12px 38px -6px rgba(236, 72, 153, 0.7),
-      0 4px 16px rgba(139, 92, 246, 0.45);
+      0 14px 42px -4px rgba(236, 72, 153, 0.8),
+      0 4px 20px rgba(139, 92, 246, 0.55);
     transform: translateY(-1px);
   }
 
@@ -250,4 +274,29 @@
 
 .animate-fade-in-out {
   animation: fade-in-out 1.4s ease-in-out;
+}
+
+@keyframes flame-flicker {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1.1) rotate(-3deg);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(0.94) rotate(2deg);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1.06) rotate(-1deg);
+    opacity: 0.9;
+  }
+}
+
+.animate-flame-flicker {
+  animation: flame-flicker 1.4s ease-in-out infinite;
+  transform-origin: 50% 90%;
 }

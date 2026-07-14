@@ -12,7 +12,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "card-gradient rounded-xl border border-white/10 shadow-xl shadow-black/20",
+        "card-gradient card-glow rounded-xl border border-white/10",
         className
       )}
       style={style}

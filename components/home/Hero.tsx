@@ -58,12 +58,16 @@ export function Hero() {
           <Logo height={80} />
         </div>
         <div className="hero-live-pill mt-6 flex justify-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-fuchsia-400/40 bg-gradient-to-r from-violet-500/15 to-pink-500/15 px-4 py-1.5">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-fuchsia-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-fuchsia-400" />
-            </span>
-            <span className="font-heading text-xs uppercase tracking-[0.2em] text-fuchsia-300">
+          <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/40 bg-gradient-to-r from-orange-500/15 to-amber-500/15 px-4 py-1.5 shadow-[0_0_18px_rgba(251,146,60,0.35)]">
+            <svg
+              className="animate-flame-flicker h-3.5 w-3.5 text-orange-400"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.176 7.547 7.547 0 01-1.705-1.715.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.313-1.172c.628.465 1.35.81 2.133 1.005a3.75 3.75 0 011.567-3.554 4.5 4.5 0 011.72 1.5 3.75 3.75 0 011.893 2.221z" />
+            </svg>
+            <span className="font-heading text-xs uppercase tracking-[0.2em] text-orange-300">
               Coaches are looking now
             </span>
           </span>

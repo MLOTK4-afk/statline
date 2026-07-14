@@ -14,15 +14,17 @@ type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
   primary: "btn-glow text-white",
-  secondary: "bg-white text-navy-900 hover:bg-skyline-300",
+  secondary:
+    "bg-white text-navy-900 hover:bg-skyline-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]",
   outline:
-    "border border-skyline-300/40 text-white hover:border-skyline-300 hover:bg-white/5",
-  ghost: "text-skyline-300 hover:text-white hover:bg-white/5",
+    "border border-skyline-300/40 text-white hover:border-skyline-300 hover:bg-white/5 hover:shadow-[0_0_20px_rgba(147,197,253,0.3)]",
+  ghost:
+    "text-skyline-300 hover:text-white hover:bg-white/5 hover:shadow-[0_0_16px_rgba(59,130,246,0.2)]",
   // International section's brand accent — green instead of electric blue.
   accent:
-    "bg-intl-500 text-white hover:bg-intl-600 shadow-lg shadow-intl-500/20",
+    "bg-intl-500 text-white shadow-lg shadow-intl-500/20 hover:bg-intl-600 hover:shadow-[0_0_24px_rgba(16,185,129,0.45)]",
   outlineAccent:
-    "border border-intl-300/40 text-white hover:border-intl-300 hover:bg-white/5",
+    "border border-intl-300/40 text-white hover:border-intl-300 hover:bg-white/5 hover:shadow-[0_0_20px_rgba(110,231,183,0.3)]",
   // Tertiary violet->pink accent -- reserved for a couple of deliberate
   // spots (e.g. the persistent nav CTA), not a replacement for primary.
   flare: "btn-glow-flare text-white",
@@ -35,7 +37,7 @@ const sizes: Record<Size, string> = {
 };
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-md font-semibold tracking-wide transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-2 rounded-md font-semibold tracking-wide transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed";
 
 interface CommonProps {
   variant?: Variant;
