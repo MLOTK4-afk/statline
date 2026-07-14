@@ -70,7 +70,7 @@ export function Navbar() {
           <GlobalSearch />
           <Link
             href="/athletes/example"
-            className="pill-glow-orange inline-flex items-center px-3.5 py-1 text-sm font-medium"
+            className="pill-orange inline-flex items-center px-3.5 py-1 text-sm font-medium"
           >
             <span className="text-gradient-orange">See an example profile</span>
           </Link>
@@ -139,7 +139,7 @@ export function Navbar() {
             <Link
               href="/athletes/example"
               onClick={() => setOpen(false)}
-              className="pill-glow-orange inline-flex w-fit items-center px-3.5 py-1 text-sm font-medium"
+              className="pill-orange inline-flex w-fit items-center px-3.5 py-1 text-sm font-medium"
             >
               <span className="text-gradient-orange">See an example profile</span>
             </Link>
