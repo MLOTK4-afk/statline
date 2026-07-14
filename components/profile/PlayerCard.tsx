@@ -1,9 +1,49 @@
 import { forwardRef } from "react";
+import qrcode from "qrcode-generator";
 import type { AthleteProfile } from "@/lib/types";
 import type { FitScoreResult } from "@/lib/fitScore";
 import { getAthleteTier } from "@/lib/tier";
 import { TIER_LABEL } from "@/lib/tier";
 import { getSportAccent } from "@/lib/sportTheme";
+
+const CARD_SHARE_ORIGIN = "https://statlinesports.net";
+
+/** Cuts long quotes down to a card-friendly length at a word boundary. */
+function truncateQuote(text: string, max = 100): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  return `${cut.slice(0, cut.lastIndexOf(" "))}…`;
+}
+
+/**
+ * Scalloped seal (24-point badge outline, like an official certificate
+ * stamp) with a checkmark, in the primary brand blue -- pairs with the
+ * shield monogram to bookend the "new athlete" line.
+ */
+function ScallopedSealBadge({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      <defs>
+        <linearGradient id="seal-badge-gradient" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#3B82F6" />
+          <stop offset="100%" stopColor="#4F46E5" />
+        </linearGradient>
+      </defs>
+      <polygon
+        points="12.00,1.00 14.28,3.50 17.50,2.47 18.22,5.78 21.53,6.50 20.50,9.72 23.00,12.00 20.50,14.28 21.53,17.50 18.22,18.22 17.50,21.53 14.28,20.50 12.00,23.00 9.72,20.50 6.50,21.53 5.78,18.22 2.47,17.50 3.50,14.28 1.00,12.00 3.50,9.72 2.47,6.50 5.78,5.78 6.50,2.47 9.72,3.50"
+        fill="url(#seal-badge-gradient)"
+      />
+      <path
+        d="M8 12.4l2.6 2.6 5.2-6"
+        stroke="#fff"
+        strokeWidth={2}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 /**
  * Shield-shaped seal (outer ring outline + inner filled shield with an "S"
@@ -74,6 +114,22 @@ export const PlayerCard = forwardRef<
     tiles.push({ label: "Size", value: athlete.heightWeight });
   }
 
+  // Prefer a real coach endorsement over the AI-generated tagline -- both
+  // are genuine per-athlete content, so either fills the card's empty
+  // middle space with something that actually differentiates it.
+  const rawQuote = athlete.endorsement?.quote || athlete.scoutingReport?.tagline;
+  const quoteText = rawQuote ? truncateQuote(rawQuote) : undefined;
+  const quoteAttribution = athlete.endorsement?.quote
+    ? [athlete.endorsement.name, athlete.endorsement.title].filter(Boolean).join(", ")
+    : undefined;
+
+  // Synchronous, no network/CORS concerns -- generated straight to a data
+  // URI so it exports via html-to-image exactly like the rest of the card.
+  const qr = qrcode(0, "M");
+  qr.addData(`${CARD_SHARE_ORIGIN}/athletes/${athlete.id}`);
+  qr.make();
+  const qrDataUrl = qr.createDataURL(6, 2);
+
   return (
     <div
       ref={ref}
@@ -81,6 +137,12 @@ export const PlayerCard = forwardRef<
         width: 400,
         height: 500,
         position: "relative",
+        // Gives this div its own stacking context so the watermark's
+        // negative z-index below is contained here -- without an explicit
+        // z-index, `position: relative` alone doesn't create one, and the
+        // watermark escapes to the page root and renders behind everything,
+        // including this card's own background (invisible).
+        zIndex: 0,
         overflow: "hidden",
         fontFamily: "var(--font-inter), sans-serif",
         color: "#fff",
@@ -93,6 +155,24 @@ export const PlayerCard = forwardRef<
         flexDirection: "column",
       }}
     >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logos/logo-no-tagline.png"
+        alt=""
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: 300,
+          height: 300,
+          objectFit: "contain",
+          opacity: 0.05,
+          zIndex: -1,
+          pointerEvents: "none",
+        }}
+      />
+
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -136,7 +216,7 @@ export const PlayerCard = forwardRef<
       </div>
 
       <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 7 }}>
-        <VerificationBadge size={22} />
+        <ScallopedSealBadge size={22} />
         <span
           style={{
             fontFamily: "var(--font-big-shoulders), sans-serif",
@@ -152,6 +232,7 @@ export const PlayerCard = forwardRef<
         >
           New Statline athlete
         </span>
+        <VerificationBadge size={22} />
       </div>
 
       <div
@@ -253,6 +334,27 @@ export const PlayerCard = forwardRef<
         </div>
       )}
 
+      {quoteText && (
+        <div
+          style={{
+            marginTop: 16,
+            padding: "12px 14px",
+            borderLeft: `3px solid ${accent}`,
+            backgroundColor: "rgba(255,255,255,0.03)",
+            borderRadius: "0 10px 10px 0",
+          }}
+        >
+          <div style={{ fontSize: 13, fontStyle: "italic", color: "#CBD5E1", lineHeight: 1.4 }}>
+            &ldquo;{quoteText}&rdquo;
+          </div>
+          {quoteAttribution && (
+            <div style={{ marginTop: 6, fontSize: 10, color: "#64748B" }}>
+              — {quoteAttribution}
+            </div>
+          )}
+        </div>
+      )}
+
       <div style={{ flex: 1 }} />
 
       {athlete.committed && (
@@ -278,9 +380,19 @@ export const PlayerCard = forwardRef<
         }}
       >
         <span style={{ fontSize: 10, color: "#475569" }}>Built with Statline</span>
-        <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>
-          statlinesports.net
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={qrDataUrl}
+            alt=""
+            width={32}
+            height={32}
+            style={{ borderRadius: 4, backgroundColor: "#fff", padding: 2 }}
+          />
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>
+            statlinesports.net
+          </span>
+        </div>
       </div>
     </div>
   );
