@@ -70,9 +70,9 @@ export function Navbar() {
           <GlobalSearch />
           <Link
             href="/athletes/example"
-            className="text-sm font-medium text-orange-400 transition-colors hover:text-orange-300"
+            className="pill-glow-orange inline-flex items-center px-3.5 py-1 text-sm font-medium"
           >
-            See an example profile
+            <span className="text-gradient-orange">See an example profile</span>
           </Link>
           {status === "authenticated" ? (
             <>
@@ -139,9 +139,9 @@ export function Navbar() {
             <Link
               href="/athletes/example"
               onClick={() => setOpen(false)}
-              className="text-sm font-medium text-orange-400 hover:text-orange-300"
+              className="pill-glow-orange inline-flex w-fit items-center px-3.5 py-1 text-sm font-medium"
             >
-              See an example profile
+              <span className="text-gradient-orange">See an example profile</span>
             </Link>
             <div className="flex flex-col gap-2 pt-2">
               {status === "authenticated" ? (

@@ -32,7 +32,9 @@ export function ProfileFull({
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-4xl text-white sm:text-5xl">{athlete.name}</h1>
+            <h1 className="pill-glow-flare inline-flex items-center px-5 py-1.5 text-4xl sm:text-5xl">
+              <span className="text-gradient-flare">{athlete.name}</span>
+            </h1>
             <TierBadge tier={getAthleteTier(athlete)} />
           </div>
           <p className="mt-2 text-lg text-slate-400">

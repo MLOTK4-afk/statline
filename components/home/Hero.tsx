@@ -58,7 +58,7 @@ export function Hero() {
           <Logo height={80} />
         </div>
         <div className="hero-live-pill mt-6 flex justify-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/40 bg-gradient-to-r from-orange-500/15 to-amber-500/15 px-4 py-1.5 shadow-[0_0_18px_rgba(251,146,60,0.35)]">
+          <span className="pill-glow-orange inline-flex items-center gap-2 px-4 py-1.5">
             <svg
               className="animate-flame-flicker h-3.5 w-3.5 text-orange-400"
               viewBox="0 0 24 24"

@@ -142,8 +142,8 @@
   .btn-glow {
     background-image: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%);
     box-shadow:
-      0 8px 34px -6px rgba(79, 70, 229, 0.65),
-      0 2px 14px rgba(59, 130, 246, 0.45);
+      0 8px 40px -4px rgba(79, 70, 229, 0.75),
+      0 2px 20px rgba(59, 130, 246, 0.55);
     transition:
       transform 150ms ease,
       box-shadow 150ms ease,
@@ -152,8 +152,8 @@
 
   .btn-glow:hover {
     box-shadow:
-      0 14px 42px -4px rgba(79, 70, 229, 0.8),
-      0 4px 20px rgba(59, 130, 246, 0.55);
+      0 16px 50px -2px rgba(79, 70, 229, 0.9),
+      0 6px 26px rgba(59, 130, 246, 0.65);
     transform: translateY(-1px);
   }
 
@@ -202,6 +202,44 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+
+  /* Ombre orange -- pairs with the hero live pill's orange/flame accent. */
+  .text-gradient-orange {
+    background: linear-gradient(90deg, #fb923c 0%, #fbbf24 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /*
+   * Shared "Elite badge" pill treatment -- rounded-full border + tinted
+   * gradient fill + glow -- reused wherever a piece of text (not just a
+   * small tier badge) should carry the same premium-pill look, e.g. the
+   * nav "see an example" link and an athlete's name heading.
+   */
+  .pill-glow-flare {
+    border-radius: 9999px;
+    border: 1px solid rgba(232, 121, 249, 0.5);
+    background: linear-gradient(90deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15));
+    box-shadow: 0 0 26px -2px rgba(217, 70, 239, 0.45);
+    transition: box-shadow 200ms ease;
+  }
+
+  .pill-glow-flare:hover {
+    box-shadow: 0 0 34px -2px rgba(217, 70, 239, 0.6);
+  }
+
+  .pill-glow-orange {
+    border-radius: 9999px;
+    border: 1px solid rgba(251, 146, 60, 0.5);
+    background: linear-gradient(90deg, rgba(249, 115, 22, 0.15), rgba(245, 158, 11, 0.15));
+    box-shadow: 0 0 26px -2px rgba(251, 146, 60, 0.5);
+    transition: box-shadow 200ms ease;
+  }
+
+  .pill-glow-orange:hover {
+    box-shadow: 0 0 34px -2px rgba(251, 146, 60, 0.65);
   }
 }
 
