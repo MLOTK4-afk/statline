@@ -23,7 +23,7 @@ export function ProfileFull({
     >
       {athlete.bannerUrl && (
         <div
-          className="-mx-8 -mt-8 mb-8 h-48 bg-cover bg-center sm:h-64"
+          className="-mx-8 -mt-8 mb-8 h-48 bg-cover bg-top sm:h-64"
           style={{
             backgroundImage: `linear-gradient(180deg, ${accent}33 0%, rgba(15,23,42,0.92) 100%), url(${athlete.bannerUrl})`,
           }}
