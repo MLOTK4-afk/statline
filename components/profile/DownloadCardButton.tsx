@@ -38,6 +38,7 @@ export function DownloadCardButton({
     try {
       const dataUrl = await toPng(cardRef.current, {
         pixelRatio: EXPORT_PIXEL_RATIO,
+        cacheBust: true,
       });
       const link = document.createElement("a");
       const fileName = athlete.name
