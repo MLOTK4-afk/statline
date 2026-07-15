@@ -25,6 +25,12 @@ export function ProfileCard({ athlete }: { athlete: AthleteProfile }) {
         className="relative h-full overflow-hidden p-5 transition-transform duration-200 group-hover:-translate-y-1 group-hover:border-[var(--hover-accent)]"
         style={{ ["--hover-accent" as string]: hoverAccent }}
       >
+        {athlete.bannerUrl && (
+          <div
+            className="-mx-5 -mt-5 mb-4 h-32 bg-cover bg-top"
+            style={{ backgroundImage: `url(${athlete.bannerUrl})` }}
+          />
+        )}
         <div className="flex items-start justify-between gap-2">
           <div>
             <h3 className="font-heading text-2xl leading-tight text-white">
