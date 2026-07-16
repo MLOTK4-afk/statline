@@ -8,6 +8,12 @@ import { getSportAccent } from "@/lib/sportTheme";
 
 const CARD_SHARE_ORIGIN = "https://statlinesports.net";
 
+/** Gold -> violet -> sky-blue "holo foil" treatment, reserved for the
+ * Statline Legend tier so it reads as a clear step up from Elite's flat
+ * violet/pink on the exported card. */
+const LEGEND_GRADIENT =
+  "linear-gradient(90deg, #FBBF24 0%, #8B5CF6 50%, #38BDF8 100%)";
+
 /** Cuts long quotes down to a card-friendly length at a word boundary. */
 function truncateQuote(text: string, max = 100): string {
   if (text.length <= max) return text;
@@ -101,6 +107,38 @@ export const PlayerCard = forwardRef<
 >(function PlayerCard({ athlete, fitScore }, ref) {
   const accent = getSportAccent(athlete.sport);
   const tier = getAthleteTier(athlete);
+  const isLegend = tier === "Legend";
+  const allSports = [
+    athlete.sport,
+    ...(athlete.additionalSports?.map((s) => s.sport) ?? []),
+  ];
+  const isMultiSport = allSports.length > 1;
+
+  const tierPillBaseStyle = {
+    display: "inline-flex",
+    alignItems: "center",
+    borderRadius: 999,
+    padding: "4px 12px",
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+  } as const;
+  const tierPillStyle = isLegend
+    ? {
+        ...tierPillBaseStyle,
+        border: "1.5px solid rgba(255,255,255,0.5)",
+        color: "#fff",
+        backgroundImage: LEGEND_GRADIENT,
+        boxShadow:
+          "0 0 12px rgba(251,191,36,0.45), 0 0 12px rgba(139,92,246,0.45), 0 0 12px rgba(56,189,248,0.45)",
+      }
+    : {
+        ...tierPillBaseStyle,
+        border: `1.5px solid ${accent}`,
+        color: accent,
+        backgroundColor: `${accent}22`,
+      };
 
   const statEntries = Object.entries(athlete.stats).slice(0, 2);
   const tiles: { label: string; value: string }[] = [];
@@ -148,7 +186,7 @@ export const PlayerCard = forwardRef<
         color: "#fff",
         backgroundColor: "#0F172A",
         backgroundImage: `linear-gradient(160deg, #141c33 0%, #0f172a 70%, #0a1224 100%)`,
-        borderTop: `6px solid ${accent}`,
+        borderTop: isLegend ? "6px solid transparent" : `6px solid ${accent}`,
         borderRadius: 20,
         padding: "24px 24px 20px",
         display: "flex",
@@ -173,6 +211,20 @@ export const PlayerCard = forwardRef<
         }}
       />
 
+      {isLegend && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 6,
+            backgroundImage: LEGEND_GRADIENT,
+            zIndex: 1,
+          }}
+        />
+      )}
+
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -196,23 +248,7 @@ export const PlayerCard = forwardRef<
             Statline
           </span>
         </div>
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            borderRadius: 999,
-            padding: "4px 12px",
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            border: `1.5px solid ${accent}`,
-            color: accent,
-            backgroundColor: `${accent}22`,
-          }}
-        >
-          {TIER_LABEL[tier]}
-        </span>
+        <span style={tierPillStyle}>{TIER_LABEL[tier]}</span>
       </div>
 
       <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 7 }}>
@@ -287,8 +323,9 @@ export const PlayerCard = forwardRef<
           {athlete.name}
         </div>
         <div style={{ marginTop: 4, fontSize: 13, color: "#94A3B8" }}>
-          {athlete.sport}
-          {athlete.positions ? ` · ${athlete.positions}` : ""}
+          {isMultiSport
+            ? allSports.join(" · ")
+            : `${athlete.sport}${athlete.positions ? ` · ${athlete.positions}` : ""}`}
         </div>
         <div style={{ marginTop: 2, fontSize: 12, color: "#64748B" }}>
           {athlete.team || athlete.region}

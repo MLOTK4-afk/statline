@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge, TierBadge } from "@/components/ui/Badge";
 import { StatCardGrid } from "@/components/profile/StatCardGrid";
 import { FitScoreCard } from "@/components/profile/FitScoreCard";
+import { SportTabs } from "@/components/profile/SportTabs";
 import { getAthleteTier } from "@/lib/tier";
 import { getSportAccent } from "@/lib/sportTheme";
 
@@ -15,6 +16,7 @@ export function ProfileFull({
   fitScore?: FitScoreResult;
 }) {
   const accent = getSportAccent(athlete.sport);
+  const hasMultipleSports = (athlete.additionalSports?.length ?? 0) > 0;
 
   return (
     <Card
@@ -44,7 +46,9 @@ export function ProfileFull({
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge>{athlete.level.replace("-", " ")}</Badge>
             {athlete.team && <Badge>{athlete.team}</Badge>}
-            {athlete.positions && <Badge>{athlete.positions}</Badge>}
+            {!hasMultipleSports && athlete.positions && (
+              <Badge>{athlete.positions}</Badge>
+            )}
             {athlete.heightWeight && <Badge>{athlete.heightWeight}</Badge>}
             {athlete.gpa && <Badge>GPA {athlete.gpa}</Badge>}
             {athlete.committed ? (
@@ -61,7 +65,7 @@ export function ProfileFull({
           </div>
         </div>
 
-        {athlete.highlightUrl && (
+        {!hasMultipleSports && athlete.highlightUrl && (
           <a
             href={athlete.highlightUrl}
             target="_blank"
@@ -73,6 +77,19 @@ export function ProfileFull({
           </a>
         )}
       </div>
+
+      {hasMultipleSports && (
+        <SportTabs
+          primary={{
+            sport: athlete.sport,
+            positions: athlete.positions,
+            jerseyNumber: athlete.jerseyNumber,
+            stats: athlete.stats,
+            highlightUrl: athlete.highlightUrl,
+          }}
+          additional={athlete.additionalSports ?? []}
+        />
+      )}
 
       {athlete.scoutingReport && (
         <div className="mt-8 border-t border-white/10 pt-6">
@@ -105,7 +122,7 @@ export function ProfileFull({
         </div>
       )}
 
-      {Object.keys(athlete.stats).length > 0 && (
+      {!hasMultipleSports && Object.keys(athlete.stats).length > 0 && (
         <div className="mt-6 border-t border-white/10 pt-6">
           <h3 className="text-sm uppercase tracking-wider text-slate-400">
             Reported Stats

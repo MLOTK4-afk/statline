@@ -18,6 +18,9 @@ export interface LivePreviewData {
   achievements: string[];
   combineFilled: boolean;
   endorsementQuote: string;
+  /** Sport names only, from the Additional Sports editor -- enough for the
+   * live preview to flip to Statline Legend as soon as a 2nd sport is added. */
+  additionalSports: string[];
 }
 
 export function ProfileLivePreview({ data }: { data: LivePreviewData }) {
@@ -54,6 +57,9 @@ export function ProfileLivePreview({ data }: { data: LivePreviewData }) {
       : undefined,
     combine: data.combineFilled ? [{ label: "", value: "" }] : undefined,
     combineVerified: false,
+    additionalSports: data.additionalSports.length
+      ? data.additionalSports.map((s) => ({ sport: s }))
+      : undefined,
   });
 
   const filledStats = data.statRows.filter((r) => r.label.trim());

@@ -5,6 +5,10 @@ import type { AthleteProfile, Level } from "@/lib/types";
 import { LEVELS, SPORTS, US_REGIONS } from "@/lib/constants";
 import { StepIndicator } from "@/components/wizard/StepIndicator";
 import { StatRowsEditor, ListEditor } from "@/components/wizard/ListEditor";
+import {
+  AdditionalSportsEditor,
+  type AdditionalSportDraft,
+} from "@/components/wizard/AdditionalSportsEditor";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input, Label, Select, Textarea, FieldError } from "@/components/ui/Field";
@@ -33,6 +37,9 @@ export function ProfileWizard() {
   const [gpa, setGpa] = useState("");
   const [statRows, setStatRows] = useState([{ label: "", value: "" }]);
   const [highlightUrl, setHighlightUrl] = useState("");
+  const [additionalSports, setAdditionalSports] = useState<
+    AdditionalSportDraft[]
+  >([]);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(null);
   const [bannerError, setBannerError] = useState<string | null>(null);
@@ -78,6 +85,18 @@ export function ProfileWizard() {
         }));
         setStatRows(rows.length ? rows : [{ label: "", value: "" }]);
         setHighlightUrl(athlete.highlightUrl ?? "");
+        setAdditionalSports(
+          (athlete.additionalSports ?? []).map((entry) => ({
+            sport: entry.sport,
+            positions: entry.positions ?? "",
+            jerseyNumber: entry.jerseyNumber ?? "",
+            statRows: Object.entries(entry.stats ?? {}).map(([label, value]) => ({
+              label,
+              value,
+            })),
+            highlightUrl: entry.highlightUrl ?? "",
+          }))
+        );
         setBannerPreviewUrl(athlete.bannerUrl ?? null);
         setAchievements(
           athlete.achievements.length ? athlete.achievements : [""]
@@ -171,9 +190,28 @@ export function ProfileWizard() {
           }
         : undefined;
 
+    const additionalSportsPayload = additionalSports
+      .filter((entry) => entry.sport.trim())
+      .map((entry) => {
+        const entryStats: Record<string, string> = {};
+        entry.statRows.forEach((row) => {
+          if (row.label.trim()) entryStats[row.label.trim()] = row.value.trim();
+        });
+        return {
+          sport: entry.sport,
+          positions: entry.positions.trim() || undefined,
+          jerseyNumber: entry.jerseyNumber.trim() || undefined,
+          stats: Object.keys(entryStats).length ? entryStats : undefined,
+          highlightUrl: entry.highlightUrl.trim() || undefined,
+        };
+      });
+
     const payload = {
       level,
       sport,
+      additionalSports: additionalSportsPayload.length
+        ? additionalSportsPayload
+        : undefined,
       name,
       jerseyNumber: jerseyNumber || undefined,
       region,
@@ -255,6 +293,9 @@ export function ProfileWizard() {
     achievements,
     combineFilled: combineRows.some((r) => r.label.trim()),
     endorsementQuote,
+    additionalSports: additionalSports
+      .map((entry) => entry.sport)
+      .filter((s) => s.trim()),
   };
 
   return (
@@ -458,6 +499,18 @@ export function ProfileWizard() {
               <div className="mt-6">
                 <Label>Stats</Label>
                 <StatRowsEditor rows={statRows} onChange={setStatRows} />
+              </div>
+
+              <div className="mt-6">
+                <Label>Additional Sports (up to 2 more)</Label>
+                <p className="mb-3 text-xs text-slate-500">
+                  Play more than one sport? Add up to 2 more below — profiles
+                  with more than one sport earn the Statline Legend tier.
+                </p>
+                <AdditionalSportsEditor
+                  sports={additionalSports}
+                  onChange={setAdditionalSports}
+                />
               </div>
 
               <div className="mt-6">

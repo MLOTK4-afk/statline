@@ -188,6 +188,7 @@ function rowToAthlete(row: any): AthleteProfile {
     ownerToken: row.owner_token,
     level: row.level,
     sport: row.sport,
+    additionalSports: row.additional_sports ?? undefined,
     name: row.name,
     jerseyNumber: row.jersey_number ?? undefined,
     region: row.region,
@@ -227,6 +228,8 @@ function athleteToRow(
   if (data.ownerToken !== undefined) row.owner_token = data.ownerToken;
   if (data.level !== undefined) row.level = data.level;
   if (data.sport !== undefined) row.sport = data.sport;
+  if (data.additionalSports !== undefined)
+    row.additional_sports = data.additionalSports;
   if (data.name !== undefined) row.name = data.name;
   if (data.jerseyNumber !== undefined) row.jersey_number = data.jerseyNumber;
   if (data.region !== undefined) row.region = data.region;

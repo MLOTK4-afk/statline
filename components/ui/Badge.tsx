@@ -8,6 +8,7 @@ const tierStyles: Record<Tier, string> = {
   Gold: "bg-[#D4AF37]/20 text-[#D4AF37] border-[#D4AF37]/50",
   Elite:
     "bg-gradient-to-r from-violet-500/25 to-pink-500/25 text-fuchsia-300 border-fuchsia-400/50 shadow-[0_0_10px_rgba(217,70,239,0.6)]",
+  Legend: "pill-glow-legend",
 };
 
 export function TierBadge({ tier }: { tier: Tier }) {

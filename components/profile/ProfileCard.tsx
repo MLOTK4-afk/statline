@@ -66,6 +66,14 @@ export function ProfileCard({ athlete }: { athlete: AthleteProfile }) {
 
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge>{athlete.level.replace("-", " ")}</Badge>
+          {athlete.additionalSports && athlete.additionalSports.length > 0 && (
+            <span className="pill-legend inline-flex items-center px-2.5 py-0.5 text-xs font-semibold">
+              <span className="text-gradient-legend">
+                +{athlete.additionalSports.length} sport
+                {athlete.additionalSports.length > 1 ? "s" : ""}
+              </span>
+            </span>
+          )}
           {!athlete.isExample && <MomentumBadgeClient athleteId={athlete.id} />}
           {athlete.committed ? (
             <Badge className="border-electric-500/40 text-electric-500">

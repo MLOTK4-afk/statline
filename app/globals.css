@@ -243,6 +243,54 @@
   .pill-glow-orange:hover {
     box-shadow: 0 0 24px rgba(251, 146, 60, 0.45);
   }
+
+  /*
+   * Statline Legend -- the tier above Elite, awarded for multi-sport
+   * profiles. A holographic-foil gradient (gold -> violet -> sky-blue)
+   * reads as a clear step up from Elite's flat violet/pink, echoing the
+   * "holo rare" trading-card look. Static utilities for general reuse;
+   * .pill-glow-legend below adds the shimmer + multi-color glow reserved
+   * for the tier badge and player card, the two "wow" surfaces.
+   */
+  .text-gradient-legend {
+    background: linear-gradient(110deg, #fbbf24 0%, #8b5cf6 50%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .pill-legend {
+    border-radius: 9999px;
+    border: 1px solid rgba(251, 191, 36, 0.5);
+    background: linear-gradient(
+      110deg,
+      rgba(251, 191, 36, 0.18),
+      rgba(139, 92, 246, 0.18),
+      rgba(56, 189, 248, 0.18)
+    );
+  }
+
+  .pill-glow-legend {
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background-image: linear-gradient(110deg, #fbbf24, #8b5cf6, #38bdf8, #fbbf24);
+    background-size: 300% 100%;
+    color: #fff;
+    box-shadow:
+      0 0 10px rgba(251, 191, 36, 0.5),
+      0 0 16px rgba(139, 92, 246, 0.5),
+      0 0 10px rgba(56, 189, 248, 0.5);
+    animation: holo-shift 6s linear infinite;
+  }
+}
+
+@keyframes holo-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
 }
 
 ::-webkit-scrollbar {

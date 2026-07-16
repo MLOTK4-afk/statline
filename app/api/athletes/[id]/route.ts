@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { store } from "@/lib/storage";
 import { getDeviceToken } from "@/lib/deviceToken";
 import { canEditAthlete } from "@/lib/canEditAthlete";
+import { validateAdditionalSports } from "@/lib/validateAdditionalSports";
 
 export async function GET(
   _req: Request,
@@ -30,6 +31,12 @@ export async function PATCH(
   }
 
   const body = await req.json();
+
+  const additionalSportsError = validateAdditionalSports(body.additionalSports);
+  if (additionalSportsError) {
+    return NextResponse.json({ error: additionalSportsError }, { status: 400 });
+  }
+
   const updated = await store.updateAthlete(params.id, body);
   await store.recordEvent("profile_updated", { athleteId: params.id });
   return NextResponse.json(updated);

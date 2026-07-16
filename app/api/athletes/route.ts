@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { store } from "@/lib/storage";
 import { getDeviceToken } from "@/lib/deviceToken";
+import { validateAdditionalSports } from "@/lib/validateAdditionalSports";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -61,10 +62,16 @@ export async function POST(req: Request) {
     }
   }
 
+  const additionalSportsError = validateAdditionalSports(body.additionalSports);
+  if (additionalSportsError) {
+    return NextResponse.json({ error: additionalSportsError }, { status: 400 });
+  }
+
   const athlete = await store.createAthlete({
     ownerToken,
     level: body.level,
     sport: body.sport,
+    additionalSports: body.additionalSports,
     name: body.name,
     jerseyNumber: body.jerseyNumber,
     region: body.region,

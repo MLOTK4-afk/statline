@@ -4,15 +4,30 @@ export type Division = "D1" | "D2" | "D3" | "NAIA";
 
 /**
  * Deterministic, completeness/engagement-based tier — computed by
- * lib/tier.ts, not stored. "Elite" displays as "Statline Elite".
+ * lib/tier.ts, not stored. "Elite" displays as "Statline Elite" and
+ * "Legend" displays as "Statline Legend".
  */
-export type Tier = "Bronze" | "Silver" | "Gold" | "Elite";
+export type Tier = "Bronze" | "Silver" | "Gold" | "Elite" | "Legend";
 
 export type Language = "en" | "pt" | "es" | "fr";
 
 export interface StatCard {
   label: string;
   value: string;
+}
+
+/**
+ * One additional sport beyond an athlete's primary `sport` — captures only
+ * the fields that genuinely vary by sport (positions, jersey, stats,
+ * highlight film). Person-level fields (name, GPA, region, achievements,
+ * endorsement, etc.) stay shared across all of an athlete's sports.
+ */
+export interface SportEntry {
+  sport: string;
+  positions?: string;
+  jerseyNumber?: string;
+  stats?: Record<string, string>;
+  highlightUrl?: string;
 }
 
 export interface ScoutingReport {
@@ -39,6 +54,8 @@ export interface AthleteProfile {
   ownerToken: string | null;
   level: Level;
   sport: string;
+  /** Up to 2 additional sports (3 total including the primary `sport`). */
+  additionalSports?: SportEntry[];
   name: string;
   jerseyNumber?: string;
   region: string;
