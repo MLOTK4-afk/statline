@@ -14,6 +14,10 @@ const CARD_SHARE_ORIGIN = "https://statlinesports.net";
 const LEGEND_GRADIENT =
   "linear-gradient(90deg, #FBBF24 0%, #8B5CF6 50%, #38BDF8 100%)";
 
+/** Same violet -> pink gradient as the "New Statline athlete" text below,
+ * reused on the Statline Elite tier pill so the two premium signals match. */
+const ELITE_GRADIENT = "linear-gradient(90deg, #8B5CF6 0%, #EC4899 100%)";
+
 /** Cuts long quotes down to a card-friendly length at a word boundary. */
 function truncateQuote(text: string, max = 100): string {
   if (text.length <= max) return text;
@@ -133,12 +137,19 @@ export const PlayerCard = forwardRef<
         boxShadow:
           "0 0 12px rgba(251,191,36,0.45), 0 0 12px rgba(139,92,246,0.45), 0 0 12px rgba(56,189,248,0.45)",
       }
-    : {
-        ...tierPillBaseStyle,
-        border: `1.5px solid ${accent}`,
-        color: accent,
-        backgroundColor: `${accent}22`,
-      };
+    : tier === "Elite"
+      ? {
+          ...tierPillBaseStyle,
+          border: "1.5px solid rgba(236,72,153,0.5)",
+          color: "#fff",
+          backgroundImage: ELITE_GRADIENT,
+        }
+      : {
+          ...tierPillBaseStyle,
+          border: `1.5px solid ${accent}`,
+          color: accent,
+          backgroundColor: `${accent}22`,
+        };
 
   const statEntries = Object.entries(athlete.stats).slice(0, 2);
   const tiles: { label: string; value: string }[] = [];
@@ -260,7 +271,7 @@ export const PlayerCard = forwardRef<
             fontSize: 13,
             letterSpacing: "0.05em",
             textTransform: "uppercase",
-            backgroundImage: "linear-gradient(90deg, #8B5CF6 0%, #EC4899 100%)",
+            backgroundImage: ELITE_GRADIENT,
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
             color: "transparent",
