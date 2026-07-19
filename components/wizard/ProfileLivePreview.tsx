@@ -16,6 +16,7 @@ export interface LivePreviewData {
   statRows: { label: string; value: string }[];
   highlightUrl: string;
   achievements: string[];
+  previousSeasonStats: string;
   combineFilled: boolean;
   endorsementQuote: string;
   /** Sport names only, from the Additional Sports editor -- enough for the
@@ -48,6 +49,7 @@ export function ProfileLivePreview({ data }: { data: LivePreviewData }) {
   const tier = getAthleteTier({
     highlightUrl: data.highlightUrl || undefined,
     achievements: data.achievements.filter((a) => a.trim()),
+    previousSeasonStats: data.previousSeasonStats,
     stats: Object.fromEntries(
       data.statRows.filter((r) => r.label.trim()).map((r) => [r.label, r.value])
     ),

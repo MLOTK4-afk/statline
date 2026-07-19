@@ -7,6 +7,7 @@ export type TierInput = Pick<
   | "combineVerified"
   | "highlightUrl"
   | "achievements"
+  | "previousSeasonStats"
   | "stats"
   | "region"
   | "additionalSports"
@@ -24,6 +25,11 @@ export type TierInput = Pick<
  * Gold    — highlight video AND achievements
  * Silver  — stats AND region
  * Bronze  — everything else (a profile always exists at Bronze)
+ *
+ * "Achievements" also counts a filled-in Previous Season Stats field --
+ * some athletes list real honors there (e.g. "3x state qualifier") instead
+ * of the dedicated Achievements list, and the tier shouldn't miss genuine
+ * accolades just because they landed in the wrong free-text box.
  */
 export function getAthleteTier(athlete: TierInput): Tier {
   const totalSports = 1 + (athlete.additionalSports?.length ?? 0);
@@ -36,7 +42,9 @@ export function getAthleteTier(athlete: TierInput): Tier {
   if (hasEndorsement || hasVerifiedCombine) return "Elite";
 
   const hasVideo = Boolean(athlete.highlightUrl);
-  const hasAchievements = athlete.achievements.length > 0;
+  const hasAchievements =
+    athlete.achievements.length > 0 ||
+    Boolean(athlete.previousSeasonStats?.trim());
   if (hasVideo && hasAchievements) return "Gold";
 
   const hasStats = Object.keys(athlete.stats).length > 0;

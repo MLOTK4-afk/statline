@@ -291,6 +291,7 @@ export function ProfileWizard() {
     statRows,
     highlightUrl,
     achievements,
+    previousSeasonStats,
     combineFilled: combineRows.some((r) => r.label.trim()),
     endorsementQuote,
     additionalSports: additionalSports
@@ -547,6 +548,12 @@ export function ProfileWizard() {
 
               <div className="mt-6">
                 <Label>Achievements</Label>
+                <p className="mb-2 text-xs text-slate-500">
+                  Specific honors and awards (e.g. &quot;All-State,&quot; &quot;3x
+                  State Qualifier&quot;) — these count toward your profile
+                  tier, so list them here rather than in Previous Season
+                  Stats below.
+                </p>
                 <ListEditor
                   values={achievements}
                   onChange={setAchievements}
@@ -558,6 +565,10 @@ export function ProfileWizard() {
                 <Label htmlFor="previousSeasonStats">
                   Previous Season Stats
                 </Label>
+                <p className="mb-2 text-xs text-slate-500">
+                  Raw season numbers only — specific honors and awards belong
+                  in Achievements above.
+                </p>
                 <Textarea
                   id="previousSeasonStats"
                   rows={3}
