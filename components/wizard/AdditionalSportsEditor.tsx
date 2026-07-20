@@ -1,7 +1,7 @@
 "use client";
 
 import { SPORTS } from "@/lib/constants";
-import { StatRowsEditor } from "@/components/wizard/ListEditor";
+import { ListEditor, StatRowsEditor } from "@/components/wizard/ListEditor";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, Select } from "@/components/ui/Field";
 
@@ -13,6 +13,7 @@ export interface AdditionalSportDraft {
   jerseyNumber: string;
   statRows: { label: string; value: string }[];
   highlightUrl: string;
+  achievements: string[];
 }
 
 export const EMPTY_ADDITIONAL_SPORT: AdditionalSportDraft = {
@@ -21,6 +22,7 @@ export const EMPTY_ADDITIONAL_SPORT: AdditionalSportDraft = {
   jerseyNumber: "",
   statRows: [{ label: "", value: "" }],
   highlightUrl: "",
+  achievements: [""],
 };
 
 /**
@@ -117,6 +119,15 @@ export function AdditionalSportsEditor({
             <StatRowsEditor
               rows={entry.statRows}
               onChange={(rows) => updateEntry(idx, { statRows: rows })}
+            />
+          </div>
+
+          <div className="mt-4">
+            <Label>Achievements in this sport</Label>
+            <ListEditor
+              values={entry.achievements}
+              onChange={(next) => updateEntry(idx, { achievements: next })}
+              placeholder="All-Region Team, 2025"
             />
           </div>
         </div>

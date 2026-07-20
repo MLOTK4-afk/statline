@@ -86,8 +86,13 @@ export function ProfileFull({
             jerseyNumber: athlete.jerseyNumber,
             stats: athlete.stats,
             highlightUrl: athlete.highlightUrl,
+            achievements: athlete.achievements,
           }}
           additional={athlete.additionalSports ?? []}
+          gpa={athlete.gpa}
+          heightWeight={athlete.heightWeight}
+          region={athlete.region}
+          primaryFitScore={fitScore}
         />
       )}
 
@@ -189,7 +194,7 @@ export function ProfileFull({
         </div>
       )}
 
-      {athlete.achievements.length > 0 && (
+      {!hasMultipleSports && athlete.achievements.length > 0 && (
         <div className="mt-6 border-t border-white/10 pt-6">
           <h3 className="text-sm uppercase tracking-wider text-slate-400">
             Achievements
@@ -245,7 +250,7 @@ export function ProfileFull({
         </div>
       )}
 
-      {fitScore && <FitScoreCard result={fitScore} />}
+      {!hasMultipleSports && fitScore && <FitScoreCard result={fitScore} />}
     </Card>
   );
 }

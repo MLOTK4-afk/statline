@@ -29,6 +29,26 @@ export const EXAMPLE_PROFILE: AthleteProfile = {
     "Team Captain",
     "Regional Offensive MVP",
   ],
+  // A second sport (Track & Field) so the example profile shows off the
+  // multi-sport tab layout -- its own positions/stats/achievements/Fit
+  // Score, distinct from football's -- since this is the flagship demo
+  // page new users land on. Paired with the existing coach endorsement
+  // below, this is what genuinely earns Statline Legend under the current
+  // tier rule (Elite-level profile + more than one sport), not an override.
+  additionalSports: [
+    {
+      sport: "Track & Field",
+      positions: "100m, 200m, 4x100m Relay",
+      stats: {
+        "100m": "11.1s",
+        "200m": "22.8s",
+      },
+      achievements: [
+        "Regional Qualifier, 100m",
+        "Conference Champion, 4x100m Relay",
+      ],
+    },
+  ],
   contactEmail: "",
   committed: false,
   published: false,

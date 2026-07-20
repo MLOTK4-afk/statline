@@ -1,30 +1,77 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { SportEntry } from "@/lib/types";
+import type { DivisionBenchmark, FitScoreResult } from "@/lib/fitScore";
+import { calculateFitScore } from "@/lib/fitScore";
 import { Badge } from "@/components/ui/Badge";
+import { FitScoreCard } from "@/components/profile/FitScoreCard";
 import { getSportAccent } from "@/lib/sportTheme";
 import { cn } from "@/lib/cn";
 
 /**
  * Sport-specific panel for multi-sport profiles -- a tab per sport (primary
- * first) swaps the positions/jersey/highlight-film/stats shown below.
- * Person-level info (name, GPA, achievements, endorsement, etc.) lives
- * outside this component since it doesn't vary by sport. Only rendered when
- * an athlete has more than one sport; single-sport profiles never mount
- * this, so their layout is untouched.
+ * first) swaps the positions/jersey/highlight-film/stats/achievements/Fit
+ * Score shown below. Person-level info that genuinely doesn't vary by sport
+ * (name, GPA itself, endorsement, scouting report) lives outside this
+ * component. Only rendered when an athlete has more than one sport;
+ * single-sport profiles never mount this, so their layout is untouched.
+ *
+ * Fit Score for the primary sport is passed in already computed (the page
+ * does it server-side, like every other profile). Switching to an
+ * additional sport fetches that sport's division benchmarks and recomputes
+ * client-side -- `calculateFitScore` is a pure function, so no new API
+ * route is needed, just the existing /api/division-benchmarks lookup.
  */
 export function SportTabs({
   primary,
   additional,
+  gpa,
+  heightWeight,
+  region,
+  primaryFitScore,
 }: {
   primary: SportEntry;
   additional: SportEntry[];
+  gpa?: string;
+  heightWeight?: string;
+  region: string;
+  primaryFitScore?: FitScoreResult;
 }) {
   const entries = [primary, ...additional];
   const [active, setActive] = useState(0);
   const current = entries[active];
   const accent = getSportAccent(current.sport);
+
+  const [fitScore, setFitScore] = useState(primaryFitScore);
+  const [fitScoreLoading, setFitScoreLoading] = useState(false);
+
+  useEffect(() => {
+    if (active === 0) {
+      setFitScore(primaryFitScore);
+      return;
+    }
+    let cancelled = false;
+    setFitScoreLoading(true);
+    fetch(`/api/division-benchmarks?sport=${encodeURIComponent(current.sport)}`)
+      .then((res) => res.json())
+      .then((benchmarks: DivisionBenchmark[]) => {
+        if (cancelled) return;
+        setFitScore(
+          calculateFitScore(
+            { sport: current.sport, gpa, stats: current.stats ?? {}, heightWeight, region },
+            benchmarks
+          )
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setFitScoreLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
 
   return (
     <div className="mt-6 border-t border-white/10 pt-6">
@@ -78,6 +125,23 @@ export function SportTabs({
           </div>
         </div>
       )}
+
+      {current.achievements && current.achievements.length > 0 && (
+        <div className="mt-4">
+          <h3 className="text-sm uppercase tracking-wider text-slate-400">
+            Achievements
+          </h3>
+          <ul className="mt-3 space-y-1.5">
+            {current.achievements.map((a) => (
+              <li key={a} className="text-sm text-slate-300">
+                &bull; {a}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {fitScore && !fitScoreLoading && <FitScoreCard result={fitScore} />}
     </div>
   );
 }

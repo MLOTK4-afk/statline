@@ -28,6 +28,9 @@ export interface SportEntry {
   jerseyNumber?: string;
   stats?: Record<string, string>;
   highlightUrl?: string;
+  /** Honors specific to this sport, separate from the athlete-level
+   * `achievements` list on the primary sport. */
+  achievements?: string[];
 }
 
 export interface ScoutingReport {

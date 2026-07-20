@@ -95,6 +95,7 @@ export function ProfileWizard() {
               value,
             })),
             highlightUrl: entry.highlightUrl ?? "",
+            achievements: entry.achievements?.length ? entry.achievements : [""],
           }))
         );
         setBannerPreviewUrl(athlete.bannerUrl ?? null);
@@ -197,12 +198,16 @@ export function ProfileWizard() {
         entry.statRows.forEach((row) => {
           if (row.label.trim()) entryStats[row.label.trim()] = row.value.trim();
         });
+        const entryAchievements = entry.achievements
+          .map((a) => a.trim())
+          .filter(Boolean);
         return {
           sport: entry.sport,
           positions: entry.positions.trim() || undefined,
           jerseyNumber: entry.jerseyNumber.trim() || undefined,
           stats: Object.keys(entryStats).length ? entryStats : undefined,
           highlightUrl: entry.highlightUrl.trim() || undefined,
+          achievements: entryAchievements.length ? entryAchievements : undefined,
         };
       });
 
