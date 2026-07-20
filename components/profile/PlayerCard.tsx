@@ -299,7 +299,7 @@ export const PlayerCard = forwardRef<
             src={athlete.bannerUrl}
             alt=""
             crossOrigin="anonymous"
-            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
           />
         ) : (
           <div

@@ -532,7 +532,7 @@ export function ProfileWizard() {
                 </p>
                 {bannerPreviewUrl && (
                   <div
-                    className="mb-3 h-32 w-full rounded-lg bg-cover bg-top"
+                    className="mb-3 h-32 w-full rounded-lg bg-cover bg-center"
                     style={{ backgroundImage: `url(${bannerPreviewUrl})` }}
                   />
                 )}

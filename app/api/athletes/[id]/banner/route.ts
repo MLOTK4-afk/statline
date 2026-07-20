@@ -3,6 +3,7 @@ import { store } from "@/lib/storage";
 import { getDeviceToken } from "@/lib/deviceToken";
 import { canEditAthlete } from "@/lib/canEditAthlete";
 import { createClient } from "@/lib/supabase/server";
+import { cropBannerImage } from "@/lib/bannerCrop";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -44,11 +45,17 @@ export async function POST(
     );
   }
 
+  const rawBuffer = Buffer.from(await file.arrayBuffer());
+  // Auto-frame the athlete (face if close/prominent, body if distant) so
+  // every render surface can just center-crop instead of guessing an
+  // anchor point per photo. Falls back to the untouched upload on failure.
+  const croppedBuffer = await cropBannerImage(rawBuffer, file.type);
+
   const supabase = await createClient();
   const path = `${params.id}/${Date.now()}.${EXT_BY_TYPE[file.type]}`;
   const { error: uploadError } = await supabase.storage
     .from("athlete-banners")
-    .upload(path, file, { contentType: file.type, upsert: true });
+    .upload(path, croppedBuffer, { contentType: file.type, upsert: true });
   if (uploadError) {
     return NextResponse.json(
       { error: `Upload failed: ${uploadError.message}` },

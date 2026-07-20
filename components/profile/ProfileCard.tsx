@@ -27,7 +27,7 @@ export function ProfileCard({ athlete }: { athlete: AthleteProfile }) {
       >
         {athlete.bannerUrl && (
           <div
-            className="-mx-5 -mt-5 mb-4 h-32 bg-cover bg-top"
+            className="-mx-5 -mt-5 mb-4 h-32 bg-cover bg-center"
             style={{ backgroundImage: `url(${athlete.bannerUrl})` }}
           />
         )}
