@@ -47,7 +47,8 @@ create table if not exists public.athletes (
   target_schools text[],
   view_count integer not null default 0,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  legend_grandfathered boolean not null default false
 );
 
 create index if not exists athletes_owner_token_idx on public.athletes (owner_token);
@@ -57,6 +58,16 @@ create index if not exists athletes_sport_idx on public.athletes (sport);
 -- Idempotent column add for databases created before banner_url existed --
 -- the create table above only runs on a fresh install.
 alter table public.athletes add column if not exists banner_url text;
+
+-- Idempotent column add for databases created before additional_sports
+-- (multi-sport profiles) existed.
+alter table public.athletes add column if not exists additional_sports jsonb;
+
+-- legend_grandfathered: one-time override so tightening the Legend-tier
+-- rule (lib/tier.ts) doesn't retroactively demote athletes who already
+-- held Legend under the old "just add a second sport" rule. Set only by
+-- scripts/backfill-legend-grandfather.mjs, never through the app.
+alter table public.athletes add column if not exists legend_grandfathered boolean not null default false;
 
 -- ---------------------------------------------------------------------------
 -- scouting_boards + board_cards (coach kanban boards)

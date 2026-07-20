@@ -112,6 +112,15 @@ export interface AthleteProfile {
    * lists together.
    */
   isExample?: boolean;
+  /**
+   * Legacy override for the multi-sport Legend tier -- set once via a
+   * one-time backfill for athletes who already held Legend under the old
+   * "just add a second sport" rule, so tightening the rule later doesn't
+   * retroactively demote them. Read-only from the app's perspective: never
+   * mapped in athleteToRow, so it can't be set through the public athlete
+   * PATCH endpoint. See lib/tier.ts.
+   */
+  legendGrandfathered?: boolean;
 }
 
 export type Role = "athlete" | "coach" | "admin";

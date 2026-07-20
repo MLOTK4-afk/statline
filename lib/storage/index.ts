@@ -218,8 +218,13 @@ function rowToAthlete(row: any): AthleteProfile {
     viewCount: row.view_count ?? 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    legendGrandfathered: row.legend_grandfathered ?? undefined,
   };
 }
+
+// Deliberately NOT read by athleteToRow -- legendGrandfathered is set only
+// via a direct backfill script (scripts/backfill-legend-grandfather.mjs),
+// never through the public athlete PATCH endpoint. See lib/tier.ts.
 
 function athleteToRow(
   data: Partial<AthleteProfile>
