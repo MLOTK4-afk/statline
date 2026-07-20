@@ -8,6 +8,7 @@ import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { RolePicker } from "@/components/onboarding/RolePicker";
 import { CompareBar } from "@/components/browse/CompareBar";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { BackNav } from "@/components/layout/BackNav";
 import { BackToTop } from "@/components/layout/BackToTop";
 import { PwaInstallBanner } from "@/components/layout/PwaInstallBanner";
 import "./globals.css";
@@ -43,6 +44,7 @@ export default function RootLayout({
       <body className="flex min-h-screen flex-col bg-navy-900">
         <Providers>
           <Navbar />
+          <BackNav />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
           <Footer />
           <CompareBar />
