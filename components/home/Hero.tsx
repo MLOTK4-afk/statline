@@ -79,9 +79,12 @@ export function Hero() {
           <span className="hero-line block">YOUR STATS DESERVE</span>
           <span className="hero-line text-gradient block">TO BE SEEN</span>
         </h1>
-        <p className="hero-copy mx-auto mt-6 max-w-xl text-lg text-slate-400">
-          Statline turns your performance into a recruiting profile that
-          coaches actually find — built on real data, not guesswork.
+        <p className="hero-copy mx-auto mt-6 max-w-xl text-lg text-skyline-300/80">
+          Statline turns your performance into a recruiting profile that{" "}
+          <span className="font-semibold text-electric-500">
+            coaches actually find
+          </span>{" "}
+          — built on real data, not guesswork.
         </p>
 
         <HeroStats />
