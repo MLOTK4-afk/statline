@@ -25,7 +25,20 @@ export async function cropBannerImage(
   if (!mediaType) return buffer;
 
   try {
-    const rect = await analyzeBannerCrop(buffer.toString("base64"), mediaType);
+    // Auto-orient using embedded EXIF data first, deterministically. Phone
+    // photos are often stored in landscape byte order with an EXIF
+    // Orientation tag saying how to display them upright -- Claude's vision
+    // API appears to already correct for this before the model "sees" the
+    // image, but our own pixel math doesn't unless we do the same
+    // correction here. Skipping this step is what caused crop percentages
+    // (computed against the corrected image) to be applied to the wrong,
+    // still-rotated pixel grid.
+    const autoOriented = await sharp(buffer).rotate().toBuffer();
+
+    const rect = await analyzeBannerCrop(
+      autoOriented.toString("base64"),
+      mediaType
+    );
 
     // Claude sometimes answers on a 0-1 fractional scale despite the prompt
     // asking for 0-100 percentages. A valid percentage crop always has
@@ -53,21 +66,20 @@ export async function cropBannerImage(
       rect.y + rect.height <= 100;
     if (!valid) {
       console.error("[bannerCrop] rejected rect from Claude:", rect);
-      return buffer;
+      return autoOriented;
     }
 
-    // Some phone photos are saved sideways/upside-down with no orientation
-    // metadata to auto-correct them -- rotate first (if needed) so the crop
-    // percentages, which Claude reported relative to the upright image,
-    // land in the right place.
+    // Rare fallback: a photo with no EXIF orientation data at all that's
+    // still genuinely sideways. Claude's rotation field (relative to the
+    // already-EXIF-corrected image above) covers that case.
     const rotation = rect.rotation ?? 0;
     const oriented =
       rotation === 90 || rotation === 180 || rotation === 270
-        ? await sharp(buffer).rotate(rotation).toBuffer()
-        : buffer;
+        ? await sharp(autoOriented).rotate(rotation).toBuffer()
+        : autoOriented;
 
     const { width, height } = await sharp(oriented).metadata();
-    if (!width || !height) return buffer;
+    if (!width || !height) return autoOriented;
 
     // Claude's rect can land far from the ~2.4:1-3:1 wide ratio we asked
     // for despite the prompt -- every surface renders this with CSS
@@ -85,6 +97,35 @@ export async function cropBannerImage(
       newHeight = Math.min(100, Math.max(10, newHeight));
       rect.y = Math.max(0, Math.min(centerY - newHeight / 2, 100 - newHeight));
       rect.height = newHeight;
+    }
+
+    // Claude sometimes says a face is visible but centers the rect
+    // elsewhere anyway (e.g. on the ball or torso), cutting the face out
+    // despite its own answer. It reports the face's actual position
+    // separately, so use that as a hard guarantee: shift the box (without
+    // resizing it) until the face point falls inside, rather than trusting
+    // rect placement alone.
+    if (
+      rect.faceVisible &&
+      Number.isFinite(rect.faceX) &&
+      Number.isFinite(rect.faceY) &&
+      rect.faceX! >= 0 &&
+      rect.faceX! <= 100 &&
+      rect.faceY! >= 0 &&
+      rect.faceY! <= 100
+    ) {
+      const margin = Math.min(3, rect.height / 4);
+      if (rect.faceY! < rect.y + margin) {
+        rect.y = Math.max(0, Math.min(rect.faceY! - margin, 100 - rect.height));
+      } else if (rect.faceY! > rect.y + rect.height - margin) {
+        rect.y = Math.max(0, Math.min(rect.faceY! - rect.height + margin, 100 - rect.height));
+      }
+      const marginX = Math.min(3, rect.width / 4);
+      if (rect.faceX! < rect.x + marginX) {
+        rect.x = Math.max(0, Math.min(rect.faceX! - marginX, 100 - rect.width));
+      } else if (rect.faceX! > rect.x + rect.width - marginX) {
+        rect.x = Math.max(0, Math.min(rect.faceX! - rect.width + marginX, 100 - rect.width));
+      }
     }
 
     const left = Math.round((rect.x / 100) * width);

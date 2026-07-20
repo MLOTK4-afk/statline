@@ -96,6 +96,16 @@ export interface BannerCropRect {
    * saved sideways/upside-down (e.g. a phone photo with no orientation
    * metadata) -- 0 if it's already upright. */
   rotation?: 0 | 90 | 180 | 270;
+  /** Whether the athlete's face is visible anywhere in the source photo. */
+  faceVisible?: boolean;
+  /** Center of the athlete's face, as percentages of the (post-rotation)
+   * image -- only meaningful when faceVisible is true. Reported
+   * independently of the crop rect above so the crop can be verified (and
+   * corrected) against it: the model sometimes says a face is visible but
+   * centers the rect elsewhere (e.g. on the ball or torso), cutting the
+   * face out despite its own answer. */
+  faceX?: number;
+  faceY?: number;
 }
 
 /**
@@ -112,7 +122,9 @@ export async function analyzeBannerCrop(
 
   const message = await client.messages.create({
     model: MODEL,
-    max_tokens: 512,
+    max_tokens: 1536,
+    thinking: { type: "adaptive" },
+    output_config: { effort: "medium" },
     messages: [
       {
         role: "user",
@@ -125,19 +137,23 @@ export async function analyzeBannerCrop(
             type: "text",
             text: `This is a banner photo for an athlete's recruiting profile.
 
-First, check orientation: some phone photos get saved sideways or upside-down with no metadata to auto-correct them. If the image needs rotating to look upright (e.g. people/the horizon are sideways), report how many degrees CLOCKWISE it needs to rotate to become upright: 0, 90, 180, or 270.
+STEP 1 — Orientation. Some phone photos get saved sideways or upside-down with no metadata to auto-correct them. Before anything else, locate the primary athlete's head and feet in the image AS GIVEN. If their head-to-feet axis runs sideways (e.g. their head is near the left or right edge of the frame instead of near the top), the photo is rotated and needs correcting. Explicitly note where the head and feet currently are, then report how many degrees CLOCKWISE the image must be rotated so the athlete stands upright: 0, 90, 180, or 270.
 
-Then, find the primary athlete in the image (usually the most prominent person, often mid-action) and return a crop rectangle that keeps them the clear subject of the photo, described relative to how the image will look AFTER that rotation is applied.
+STEP 2 — Crop. After that rotation is applied, find the primary athlete (usually the most prominent person, often mid-action) and choose a crop rectangle that keeps them the clear subject, described relative to how the image looks AFTER rotation.
 
-- If their face is close/large enough in the frame to read clearly at a small size, center the crop on their face.
-- If they're captured from a distance (e.g. a wide action shot on a field or court) where the face would be too small to anchor on, center the crop on their body/torso instead.
+Face visibility is the top priority, above action or context:
+- If the athlete's face is visible in the photo AT ALL — even partially, at an angle, mid-motion, or not perfectly sharp — the crop MUST include their face. Frame it like a portrait-with-action-context shot: their face and upper body clearly in view, not zoomed out so far the face becomes a tiny unreadable dot.
+- Only fall back to a distant body/torso-only framing in the rare case where the athlete's face is not visible anywhere in the source photo at all (e.g. they are fully turned away from the camera, or the photo is too low-resolution/far away for a face to exist in the frame at any crop).
+- Never sacrifice a visible face for the sake of showing more action or context — if you can only fit one, the face wins.
+- When the primary athlete is grappling/competing against an opponent (e.g. wrestling), crop tightly around the primary athlete so THEIR face is prominent -- don't widen the frame just to fit the opponent in equally, treat the opponent as background/context only.
 - The crop should have a wide aspect ratio, roughly between 2.4:1 and 3:1 (width:height).
-- Don't cut off their head or crop so tight that context (jersey number, action) is lost.
+- Don't cut off their head or crop so tight that jersey number/action context is entirely lost, but do not let that override the face-visibility rule above.
 - x, y, width, and height are all PERCENTAGES of the (post-rotation) image, on a 0-100 scale (NOT 0-1). x/y is the top-left corner of the crop. For example, a crop starting a quarter of the way down the image, spanning the full width and half the height, would be {"x": 0, "y": 25, "width": 100, "height": 50}.
+- Separately from the crop rect, also report faceX/faceY: the center point of the athlete's face (as percentages of the same post-rotation image), whenever faceVisible is true. Double check that this point actually falls inside the crop rect you chose above -- if it doesn't, fix the rect before answering.
 
 Respond with ONLY a JSON object (no markdown fences, no commentary) matching exactly this shape:
 
-{"rotation": 0, "x": number, "y": number, "width": number, "height": number, "reasoning": "one short sentence"}`,
+{"rotation": 0, "x": number, "y": number, "width": number, "height": number, "faceVisible": boolean, "faceX": number, "faceY": number, "reasoning": "one short sentence covering both the orientation check and the face-visibility decision"}`,
           },
         ],
       },
@@ -154,6 +170,9 @@ Respond with ONLY a JSON object (no markdown fences, no commentary) matching exa
     width: parsed.width,
     height: parsed.height,
     rotation: parsed.rotation,
+    faceVisible: parsed.faceVisible,
+    faceX: parsed.faceX,
+    faceY: parsed.faceY,
   };
 }
 

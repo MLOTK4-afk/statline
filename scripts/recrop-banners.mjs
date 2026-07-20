@@ -73,7 +73,9 @@ function extractJson(text) {
 async function analyzeBannerCrop(imageBase64, mediaType) {
   const message = await anthropic.messages.create({
     model: MODEL,
-    max_tokens: 512,
+    max_tokens: 1536,
+    thinking: { type: "adaptive" },
+    output_config: { effort: "medium" },
     messages: [
       {
         role: "user",
@@ -86,19 +88,23 @@ async function analyzeBannerCrop(imageBase64, mediaType) {
             type: "text",
             text: `This is a banner photo for an athlete's recruiting profile.
 
-First, check orientation: some phone photos get saved sideways or upside-down with no metadata to auto-correct them. If the image needs rotating to look upright (e.g. people/the horizon are sideways), report how many degrees CLOCKWISE it needs to rotate to become upright: 0, 90, 180, or 270.
+STEP 1 — Orientation. Some phone photos get saved sideways or upside-down with no metadata to auto-correct them. Before anything else, locate the primary athlete's head and feet in the image AS GIVEN. If their head-to-feet axis runs sideways (e.g. their head is near the left or right edge of the frame instead of near the top), the photo is rotated and needs correcting. Explicitly note where the head and feet currently are, then report how many degrees CLOCKWISE the image must be rotated so the athlete stands upright: 0, 90, 180, or 270.
 
-Then, find the primary athlete in the image (usually the most prominent person, often mid-action) and return a crop rectangle that keeps them the clear subject of the photo, described relative to how the image will look AFTER that rotation is applied.
+STEP 2 — Crop. After that rotation is applied, find the primary athlete (usually the most prominent person, often mid-action) and choose a crop rectangle that keeps them the clear subject, described relative to how the image looks AFTER rotation.
 
-- If their face is close/large enough in the frame to read clearly at a small size, center the crop on their face.
-- If they're captured from a distance (e.g. a wide action shot on a field or court) where the face would be too small to anchor on, center the crop on their body/torso instead.
+Face visibility is the top priority, above action or context:
+- If the athlete's face is visible in the photo AT ALL — even partially, at an angle, mid-motion, or not perfectly sharp — the crop MUST include their face. Frame it like a portrait-with-action-context shot: their face and upper body clearly in view, not zoomed out so far the face becomes a tiny unreadable dot.
+- Only fall back to a distant body/torso-only framing in the rare case where the athlete's face is not visible anywhere in the source photo at all (e.g. they are fully turned away from the camera, or the photo is too low-resolution/far away for a face to exist in the frame at any crop).
+- Never sacrifice a visible face for the sake of showing more action or context -- if you can only fit one, the face wins.
+- When the primary athlete is grappling/competing against an opponent (e.g. wrestling), crop tightly around the primary athlete so THEIR face is prominent -- don't widen the frame just to fit the opponent in equally, treat the opponent as background/context only.
 - The crop should have a wide aspect ratio, roughly between 2.4:1 and 3:1 (width:height).
-- Don't cut off their head or crop so tight that context (jersey number, action) is lost.
+- Don't cut off their head or crop so tight that jersey number/action context is entirely lost, but do not let that override the face-visibility rule above.
 - x, y, width, and height are all PERCENTAGES of the (post-rotation) image, on a 0-100 scale (NOT 0-1). x/y is the top-left corner of the crop. For example, a crop starting a quarter of the way down the image, spanning the full width and half the height, would be {"x": 0, "y": 25, "width": 100, "height": 50}.
+- Separately from the crop rect, also report faceX/faceY: the center point of the athlete's face (as percentages of the same post-rotation image), whenever faceVisible is true. Double check that this point actually falls inside the crop rect you chose above -- if it doesn't, fix the rect before answering.
 
 Respond with ONLY a JSON object (no markdown fences, no commentary) matching exactly this shape:
 
-{"rotation": 0, "x": number, "y": number, "width": number, "height": number, "reasoning": "one short sentence"}`,
+{"rotation": 0, "x": number, "y": number, "width": number, "height": number, "faceVisible": boolean, "faceX": number, "faceY": number, "reasoning": "one short sentence covering both the orientation check and the face-visibility decision"}`,
           },
         ],
       },
@@ -109,15 +115,27 @@ Respond with ONLY a JSON object (no markdown fences, no commentary) matching exa
   return extractJson(block.text);
 }
 
-/** Returns the SAME buffer reference if cropping was skipped/failed, or a
- * new buffer if it succeeded -- callers can tell them apart with `===`. */
+/** Returns the SAME buffer reference only if cropping was skipped outright
+ * (unsupported media type) -- callers can detect that case with `===`.
+ * Otherwise returns `{ buffer, reasoning }`, which is always at least
+ * EXIF-orientation-corrected even if the AI crop itself was rejected. */
 async function cropBannerImage(buffer, contentType) {
   const mediaType = { "image/jpeg": "image/jpeg", "image/png": "image/png", "image/webp": "image/webp" }[
     contentType
   ];
   if (!mediaType) return buffer;
 
-  const rect = await analyzeBannerCrop(buffer.toString("base64"), mediaType);
+  // Auto-orient using embedded EXIF data first, deterministically. Phone
+  // photos are often stored in landscape byte order with an EXIF
+  // Orientation tag saying how to display them upright -- Claude's vision
+  // API appears to already correct for this before the model "sees" the
+  // image, but our own pixel math doesn't unless we do the same correction
+  // here. Skipping this step is what caused crop percentages (computed
+  // against the corrected image) to be applied to the wrong, still-rotated
+  // pixel grid.
+  const autoOriented = await sharp(buffer).rotate().toBuffer();
+
+  const rect = await analyzeBannerCrop(autoOriented.toString("base64"), mediaType);
 
   // Claude sometimes answers on a 0-1 fractional scale despite the prompt
   // asking for 0-100 percentages. A valid percentage crop always has
@@ -143,19 +161,23 @@ async function cropBannerImage(buffer, contentType) {
     rect.y >= 0 &&
     rect.x + rect.width <= 100 &&
     rect.y + rect.height <= 100;
-  if (!valid) return buffer;
+  if (!valid) {
+    return { buffer: autoOriented, reasoning: "orientation-corrected only (crop rejected)" };
+  }
 
-  // Some phone photos are saved sideways/upside-down with no orientation
-  // metadata -- rotate first (if needed) so the crop percentages, reported
-  // relative to the upright image, land in the right place.
+  // Rare fallback: a photo with no EXIF orientation data at all that's
+  // still genuinely sideways. Claude's rotation field (relative to the
+  // already-EXIF-corrected image above) covers that case.
   const rotation = rect.rotation ?? 0;
   const oriented =
     rotation === 90 || rotation === 180 || rotation === 270
-      ? await sharp(buffer).rotate(rotation).toBuffer()
-      : buffer;
+      ? await sharp(autoOriented).rotate(rotation).toBuffer()
+      : autoOriented;
 
   const { width, height } = await sharp(oriented).metadata();
-  if (!width || !height) return buffer;
+  if (!width || !height) {
+    return { buffer: autoOriented, reasoning: "orientation-corrected only (no metadata)" };
+  }
 
   // Claude's rect can land far from the ~2.4:1-3:1 wide ratio we asked for
   // despite the prompt -- every surface renders this with CSS
@@ -173,6 +195,34 @@ async function cropBannerImage(buffer, contentType) {
     newHeight = Math.min(100, Math.max(10, newHeight));
     rect.y = Math.max(0, Math.min(centerY - newHeight / 2, 100 - newHeight));
     rect.height = newHeight;
+  }
+
+  // Claude sometimes says a face is visible but centers the rect elsewhere
+  // anyway (e.g. on the ball or torso), cutting the face out despite its
+  // own answer. It reports the face's actual position separately, so use
+  // that as a hard guarantee: shift the box (without resizing it) until
+  // the face point falls inside, rather than trusting rect placement alone.
+  if (
+    rect.faceVisible &&
+    Number.isFinite(rect.faceX) &&
+    Number.isFinite(rect.faceY) &&
+    rect.faceX >= 0 &&
+    rect.faceX <= 100 &&
+    rect.faceY >= 0 &&
+    rect.faceY <= 100
+  ) {
+    const margin = Math.min(3, rect.height / 4);
+    if (rect.faceY < rect.y + margin) {
+      rect.y = Math.max(0, Math.min(rect.faceY - margin, 100 - rect.height));
+    } else if (rect.faceY > rect.y + rect.height - margin) {
+      rect.y = Math.max(0, Math.min(rect.faceY - rect.height + margin, 100 - rect.height));
+    }
+    const marginX = Math.min(3, rect.width / 4);
+    if (rect.faceX < rect.x + marginX) {
+      rect.x = Math.max(0, Math.min(rect.faceX - marginX, 100 - rect.width));
+    } else if (rect.faceX > rect.x + rect.width - marginX) {
+      rect.x = Math.max(0, Math.min(rect.faceX - rect.width + marginX, 100 - rect.width));
+    }
   }
 
   const left = Math.round((rect.x / 100) * width);
