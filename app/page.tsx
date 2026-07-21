@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { store } from "@/lib/storage";
 import { Hero } from "@/components/home/Hero";
+import { StatCallout } from "@/components/home/StatCallout";
 import { TrendingStrip } from "@/components/home/TrendingStrip";
 import { ActivityFeed, type ActivityItem } from "@/components/home/ActivityFeed";
 import { Spotlight } from "@/components/home/Spotlight";
@@ -55,6 +56,9 @@ export default async function HomePage() {
         <CoachHomeRedirect />
       </Suspense>
       <Hero />
+      <Reveal>
+        <StatCallout count={published.length} />
+      </Reveal>
       <Reveal>
         <TrendingStrip athletes={trending} />
       </Reveal>

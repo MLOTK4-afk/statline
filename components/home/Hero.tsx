@@ -4,6 +4,7 @@ import { Suspense, useRef } from "react";
 import { Logo } from "@/components/layout/Logo";
 import { HeroCTAs } from "@/components/home/HeroCTAs";
 import { HeroStats } from "@/components/home/HeroStats";
+import { SportsMarquee } from "@/components/ui/SportsMarquee";
 import { gsap, useGSAP } from "@/lib/gsap";
 
 export function Hero() {
@@ -92,6 +93,10 @@ export function Hero() {
         <Suspense fallback={null}>
           <HeroCTAs />
         </Suspense>
+      </div>
+
+      <div className="relative mx-auto mt-12 max-w-3xl">
+        <SportsMarquee />
       </div>
     </section>
   );
