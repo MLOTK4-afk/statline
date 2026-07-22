@@ -696,6 +696,13 @@ export function ProfileWizard() {
   );
 }
 
+// This is a one-time, rare "delight budget" moment (wizard completion), so a
+// slight overshoot settle is appropriate here in a way it wouldn't be for
+// frequent UI -- see emil-design-eng's delight-budget guidance.
+const SUCCESS_EASE_DELIGHT = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+const SUCCESS_HEADLINE_MS = 500;
+const SUCCESS_STAGGER_MS = 90;
+
 function WizardSuccess({
   result,
   error,
@@ -707,6 +714,7 @@ function WizardSuccess({
   // Score like the real profile page — fetch it client-side so the Player
   // Card can include it, and just omit it if this fails.
   const [fitScore, setFitScore] = useState<FitScoreResult | undefined>(undefined);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     fetch("/api/fit-score", {
@@ -719,15 +727,38 @@ function WizardSuccess({
       .catch(() => setFitScore(undefined));
   }, [result.id]);
 
+  useEffect(() => {
+    const raf = requestAnimationFrame(() =>
+      requestAnimationFrame(() => setVisible(true))
+    );
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="text-center text-3xl text-white">Your Profile is Live</h1>
+      <h1
+        className="text-center text-3xl text-white"
+        style={{
+          transform: visible ? "translateY(0)" : "translateY(12px)",
+          opacity: visible ? 1 : 0,
+          transition: `transform ${SUCCESS_HEADLINE_MS}ms ${SUCCESS_EASE_DELIGHT}, opacity ${SUCCESS_HEADLINE_MS}ms ${SUCCESS_EASE_DELIGHT}`,
+        }}
+      >
+        Your Profile is Live
+      </h1>
       {error && (
         <p className="mx-auto mt-3 max-w-lg text-center text-sm text-amber-400">
           {error}
         </p>
       )}
-      <div className="mt-6 flex justify-center">
+      <div
+        className="mt-6 flex justify-center"
+        style={{
+          transform: visible ? "translateY(0)" : "translateY(12px)",
+          opacity: visible ? 1 : 0,
+          transition: `transform ${SUCCESS_HEADLINE_MS}ms ${SUCCESS_EASE_DELIGHT} ${SUCCESS_STAGGER_MS}ms, opacity ${SUCCESS_HEADLINE_MS}ms ${SUCCESS_EASE_DELIGHT} ${SUCCESS_STAGGER_MS}ms`,
+        }}
+      >
         <DownloadCardButton
           athlete={result}
           fitScore={fitScore}
@@ -735,7 +766,18 @@ function WizardSuccess({
           variant="primary"
         />
       </div>
-      <div className="mt-8">
+      <div
+        className="mt-8"
+        style={{
+          transform: visible ? "translateY(0)" : "translateY(12px)",
+          opacity: visible ? 1 : 0,
+          transition: `transform ${SUCCESS_HEADLINE_MS}ms ${SUCCESS_EASE_DELIGHT} ${
+            SUCCESS_STAGGER_MS * 2
+          }ms, opacity ${SUCCESS_HEADLINE_MS}ms ${SUCCESS_EASE_DELIGHT} ${
+            SUCCESS_STAGGER_MS * 2
+          }ms`,
+        }}
+      >
         <ProfileFull athlete={result} />
       </div>
     </div>

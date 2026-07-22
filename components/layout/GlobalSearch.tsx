@@ -7,13 +7,38 @@ import type { AthleteProfile } from "@/lib/types";
 import { TierBadge } from "@/components/ui/Badge";
 import { getAthleteTier } from "@/lib/tier";
 
+const ENTER_MS = 180;
+const EXIT_MS = 130;
+const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
+const EASE_IN_OUT = "cubic-bezier(0.77, 0, 0.175, 1)";
+
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
+  const [rendered, setRendered] = useState(false);
+  const [visible, setVisible] = useState(false);
   const [query, setQuery] = useState("");
   const [athletes, setAthletes] = useState<AthleteProfile[] | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (open) {
+      setRendered(true);
+      return;
+    }
+    setVisible(false);
+    const timeout = setTimeout(() => setRendered(false), EXIT_MS);
+    return () => clearTimeout(timeout);
+  }, [open]);
+
+  useEffect(() => {
+    if (!rendered) return;
+    const raf = requestAnimationFrame(() =>
+      requestAnimationFrame(() => setVisible(true))
+    );
+    return () => cancelAnimationFrame(raf);
+  }, [rendered]);
 
   useEffect(() => {
     if (!open || athletes !== null) return;
@@ -81,8 +106,20 @@ export function GlobalSearch() {
         </svg>
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 rounded-lg border border-white/10 bg-navy-800 p-3 shadow-xl">
+      {rendered && (
+        <div
+          className="absolute right-0 top-full mt-2 w-80 rounded-lg border border-white/10 bg-navy-800 p-3 shadow-xl"
+          style={{
+            transformOrigin: "top right",
+            transform: visible ? "scale(1)" : "scale(0.95)",
+            opacity: visible ? 1 : 0,
+            transition: `transform ${visible ? ENTER_MS : EXIT_MS}ms ${
+              visible ? EASE_OUT : EASE_IN_OUT
+            }, opacity ${visible ? ENTER_MS : EXIT_MS}ms ${
+              visible ? EASE_OUT : EASE_IN_OUT
+            }`,
+          }}
+        >
           <input
             ref={inputRef}
             type="text"

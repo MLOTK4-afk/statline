@@ -59,35 +59,33 @@ export function DownloadCardButton({
       <Button variant={variant} onClick={() => setOpen(true)} type="button">
         {label}
       </Button>
-      {open && (
-        <Modal onClose={() => setOpen(false)} labelledBy="player-card-title">
-          <div className="w-full max-w-md rounded-2xl bg-navy-900 border border-white/10 p-6">
-            <h2 id="player-card-title" className="text-lg font-semibold text-white">
-              Your Statline Player Card
-            </h2>
-            <p className="mt-1 text-sm text-skyline-300">
-              Download it and post straight to your Instagram.
-            </p>
-            <div className="mt-5 flex justify-center overflow-x-auto">
-              <PlayerCard ref={cardRef} athlete={athlete} fitScore={fitScore} />
-            </div>
-            {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
-            <div className="mt-6 flex justify-end gap-3">
-              <Button variant="ghost" type="button" onClick={() => setOpen(false)}>
-                Close
-              </Button>
-              <Button
-                variant="primary"
-                type="button"
-                onClick={handleDownload}
-                disabled={downloading}
-              >
-                {downloading ? "Preparing…" : "Download PNG"}
-              </Button>
-            </div>
+      <Modal open={open} onClose={() => setOpen(false)} labelledBy="player-card-title">
+        <div className="w-full max-w-md rounded-2xl bg-navy-900 border border-white/10 p-6">
+          <h2 id="player-card-title" className="text-lg font-semibold text-white">
+            Your Statline Player Card
+          </h2>
+          <p className="mt-1 text-sm text-skyline-300">
+            Download it and post straight to your Instagram.
+          </p>
+          <div className="mt-5 flex justify-center overflow-x-auto">
+            <PlayerCard ref={cardRef} athlete={athlete} fitScore={fitScore} />
           </div>
-        </Modal>
-      )}
+          {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+          <div className="mt-6 flex justify-end gap-3">
+            <Button variant="ghost" type="button" onClick={() => setOpen(false)}>
+              Close
+            </Button>
+            <Button
+              variant="primary"
+              type="button"
+              onClick={handleDownload}
+              disabled={downloading}
+            >
+              {downloading ? "Preparing…" : "Download PNG"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

@@ -21,10 +21,17 @@ const NAV_LINKS = [
   { href: "/build-profile", label: "My Profile" },
 ];
 
+const MENU_ENTER_MS = 200;
+const MENU_EXIT_MS = 150;
+const MENU_EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
+const MENU_EASE_IN_OUT = "cubic-bezier(0.77, 0, 0.175, 1)";
+
 export function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [menuRendered, setMenuRendered] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -34,6 +41,24 @@ export function Navbar() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      setMenuRendered(true);
+      return;
+    }
+    setMenuVisible(false);
+    const timeout = setTimeout(() => setMenuRendered(false), MENU_EXIT_MS);
+    return () => clearTimeout(timeout);
+  }, [open]);
+
+  useEffect(() => {
+    if (!menuRendered) return;
+    const raf = requestAnimationFrame(() =>
+      requestAnimationFrame(() => setMenuVisible(true))
+    );
+    return () => cancelAnimationFrame(raf);
+  }, [menuRendered]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-navy-900/90 backdrop-blur">
@@ -114,8 +139,20 @@ export function Navbar() {
         </div>
       </div>
 
-      {open && (
-        <div className="border-t border-white/10 bg-navy-900 px-4 py-4 md:hidden">
+      {menuRendered && (
+        <div
+          className="border-t border-white/10 bg-navy-900 px-4 py-4 md:hidden"
+          style={{
+            transformOrigin: "top",
+            transform: menuVisible ? "scale(1)" : "scale(0.97)",
+            opacity: menuVisible ? 1 : 0,
+            transition: `transform ${menuVisible ? MENU_ENTER_MS : MENU_EXIT_MS}ms ${
+              menuVisible ? MENU_EASE_OUT : MENU_EASE_IN_OUT
+            }, opacity ${menuVisible ? MENU_ENTER_MS : MENU_EXIT_MS}ms ${
+              menuVisible ? MENU_EASE_OUT : MENU_EASE_IN_OUT
+            }`,
+          }}
+        >
           <nav className="flex flex-col gap-4">
             {NAV_LINKS.map((link) => (
               <Link
