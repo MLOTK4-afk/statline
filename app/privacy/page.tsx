@@ -68,11 +68,10 @@ export default function PrivacyPage() {
 
       <LegalSection title="Your Choices">
         <p>
-          Athletes can keep their profile private using the publishing
-          toggle in the profile builder — a private profile is saved to your
-          account but never appears in the public directory, leaderboard, or
-          trending sections. You can request deletion of your account and
-          associated data at any time by contacting us.
+          Every Statline profile is listed in the public directory so
+          coaches can find it — there is no private/unlisted option. You can
+          request deletion of your account and associated data at any time
+          by contacting us.
         </p>
       </LegalSection>
 

@@ -31,6 +31,9 @@ export async function PATCH(
   }
 
   const body = await req.json();
+  // Profiles are always public -- there's no private option, so this can
+  // never be flipped to false through the API either.
+  delete body.published;
 
   const additionalSportsError = validateAdditionalSports(body.additionalSports);
   if (additionalSportsError) {

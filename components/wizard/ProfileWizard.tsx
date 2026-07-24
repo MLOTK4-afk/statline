@@ -53,7 +53,6 @@ export function ProfileWizard() {
   const [contactPhone, setContactPhone] = useState("");
   const [committed, setCommitted] = useState(false);
   const [committedSchool, setCommittedSchool] = useState("");
-  const [published, setPublished] = useState(true);
   const [showMobilePreview, setShowMobilePreview] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
@@ -112,7 +111,6 @@ export function ProfileWizard() {
         setContactPhone(athlete.contactPhone ?? "");
         setCommitted(athlete.committed);
         setCommittedSchool(athlete.committedSchool ?? "");
-        setPublished(athlete.published);
         // Returning athletes already picked a level/sport when they first
         // built their profile -- landing back on step 1 reads as "starting
         // over." Skip straight to Details, where level/sport are now also
@@ -234,7 +232,7 @@ export function ProfileWizard() {
       contactPhone: contactPhone || undefined,
       committed,
       committedSchool: committed ? committedSchool || undefined : undefined,
-      published,
+      published: true,
       isInternational: false,
     };
 
@@ -390,19 +388,6 @@ export function ProfileWizard() {
                   missing={completeness.missing}
                 />
               </div>
-
-              <label className="mt-6 flex items-start gap-3 rounded-lg border border-electric-500/30 bg-electric-500/5 p-4">
-                <input
-                  type="checkbox"
-                  checked={published}
-                  onChange={(e) => setPublished(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-white/20 bg-white/5"
-                />
-                <span className="text-sm text-slate-200">
-                  List my profile in the public directory so coaches can find
-                  me (uncheck to keep it private — only visible to you).
-                </span>
-              </label>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <div>

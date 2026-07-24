@@ -89,7 +89,7 @@ export async function POST(req: Request) {
     contactPhone: body.contactPhone,
     committed: Boolean(body.committed),
     committedSchool: body.committedSchool,
-    published: body.published !== undefined ? Boolean(body.published) : true,
+    published: true,
     isInternational: Boolean(body.isInternational),
     international: body.international,
     targetSchools: body.targetSchools,
